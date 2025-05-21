@@ -90,5 +90,6 @@ if __name__ == "__main__":
     if not os.path.exists(carpeta+"\\Carga SAP"):
         os.mkdir(carpeta+"\\Carga SAP")
         print("Hola FIN")
+        print("HOLA")
     df_resultado.to_excel(carpeta+"\\Carga SAP\\"+'CargaSAP.xlsx', index=False)
     
