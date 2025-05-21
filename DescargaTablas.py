@@ -7,6 +7,7 @@ Created on Wed Apr 23 15:03:54 2025
 import pandas as pd
 from automatizacionVentanas import SAPAutomation 
 import threading
+from pywinauto import Desktop
 from datetime import datetime
 import win32com.client
 import pyperclip
@@ -31,17 +32,17 @@ class lecturaInputs:
     def __init__(self, direcciónResultado:str):
         self.session=None
         self.direcciónResultado=direcciónResultado
-        self.hilo= None
     # Conectar SAP
     
     def conectarSAP(self):
         try:
             SapGuiAuto = win32com.client.GetObject("SAPGUI")
-            self.saltarAlertaLogSAP()
+            sap_helper = SAPAutomation()
+            sap_helper.iniciar_hilo()  # Inicia el hilo de alerta
             application = SapGuiAuto.GetScriptingEngine
             connection = application.Children(0)  # Conexión activa
             session = connection.Children(0)  # Primera sesión activa
-            self.hilo.detener_hilo()
+            sap_helper.detener()  # Detiene el hilo después de conectarse
             self.session=session
             return session
         except Exception as e:
@@ -53,11 +54,11 @@ class lecturaInputs:
         messagebox.showerror("Error", mensaje)
     
     def saltarAlertaLogSAP(self):
-        hilo = threading.Thread(target=self.saltarAlertaLogSAP)
-        hilo.start()  # Iniciar el hilo
-        self.hilo= hilo
+        self.hilo = SAPAutomation()
                 
     def descargaNOVOAPP(self, campañaInicio:str, campañaFin:str):
+        sap_helper = SAPAutomation()
+        sap_helper.iniciar_hiloZPermitir() 
         session= self.session
         session.findById("wnd[0]/tbar[0]/okcd").text = "/n se16"
         session.findById("wnd[0]").sendVKey(0)
@@ -79,7 +80,11 @@ class lecturaInputs:
         # Enviar tecla F4 (código 4) en la ventana secundaria
         session.findById("wnd[1]/tbar[0]/btn[0]").press()
         self.leerNovoAPP(Carpeta=self.direcciónResultado)
+        time.sleep(1) 
+        sap_helper.detener() 
     def descargaZMM206K(self, nombreArchivo:str):
+        sap_helper = SAPAutomation()
+        sap_helper.iniciar_hiloZPermitir() 
         session= self.session
         session.findById("wnd[0]/tbar[0]/okcd").text = "/n zmm206"
         session.findById("wnd[0]").sendVKey(0)
@@ -99,11 +104,16 @@ class lecturaInputs:
         session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").selectContextMenuItem("&XXL")
         session.findById("wnd[1]/tbar[0]/btn[0]").press()
         session.findById("wnd[1]/usr/ctxtDY_PATH").text = self.direcciónResultado
+        sap_helper.getTitulo("Reporte de Textos Breves del Material y Datos Basicos")
         session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = nombreArchivo
         session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 13
         session.findById("wnd[1]/tbar[0]/btn[11]").press()
+        time.sleep(1) 
+        sap_helper.detener() 
         
     def descargaZMM206D(self):
+        sap_helper = SAPAutomation()
+        sap_helper.iniciar_hiloZPermitir() 
         session= self.session
         session.findById("wnd[0]").maximize
         session.findById("wnd[0]/tbar[0]/okcd").text = "/n se16"
@@ -125,25 +135,28 @@ class lecturaInputs:
         session.findById("wnd[0]/tbar[1]/btn[8]").press()
         time.sleep(1)
         # Establecer el foco en la etiqueta específica y presionar VKey
+        session.findById("wnd[0]/mbar/menu[3]/menu[1]").select()
+        session.findById("wnd[1]/usr/tabsG_TABSTRIP/tabp0400/ssubTOOLAREA:SAPLWB_CUSTOMIZING:0400/radRSEUMOD-TBALV_STAN").select()
+        session.findById("wnd[1]/usr/tabsG_TABSTRIP/tabp0400/ssubTOOLAREA:SAPLWB_CUSTOMIZING:0400/radSEUCUSTOM-FIELDNAME").select()
+        session.findById("wnd[1]/usr/tabsG_TABSTRIP/tabp0400/ssubTOOLAREA:SAPLWB_CUSTOMIZING:0400/radSEUCUSTOM-FIELDNAME").setFocus()
+        session.findById("wnd[1]/tbar[0]/btn[0]").press()
         session.findById("wnd[0]/usr/lbl[37,9]").setFocus()
         session.findById("wnd[0]/usr/lbl[37,9]").caretPosition = 0
         session.findById("wnd[0]").sendVKey(20)
         # Confirmar la operación de exportación
         session.findById("wnd[1]/tbar[0]/btn[0]").press()
+        
         # Establecer el nombre y la ubicación del archivo de exportación
         session.findById("wnd[1]/usr/ctxtDY_PATH").text = self.direcciónResultado
         session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "MARC.txt"
         session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 3
-
         # Confirmar la exportación
         session.findById("wnd[1]/tbar[0]/btn[0]").press()
-
         # Esperar unos segundos para asegurarse de que el archivo se guarda
         time.sleep(3)
-
+        sap_helper.detener() 
         print("Exportación completada exitosamente.")
         
-    
     def pegarData(self, listaCodigos):
         texto_a_pegar=""
         for i in range(len(listaCodigos)):

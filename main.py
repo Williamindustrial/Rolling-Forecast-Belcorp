@@ -39,6 +39,7 @@ def datos(PR:bool, Carpeta:str, NombreCDL:str, InicioRollingCORP:int, InicioRoll
     LineaCorrida= Plinea(Carpeta=Carpeta,inicioRollingCORP=InicioRollingCORP, 
                          inicioRollingPR=InicioRollingPR, añoFinRolling=AñoFinRolling, 
                          PR=PR, NombreCDL= NombreCDL, DireccionMacrosRolling=DireccionMacrosRolling)
+    LineaCorrida.diferencia(CalculoTendencia.calculoUnidadesLinea())
     LineaCorrida.pandasAnteriores(archivoCrecimientos,CDL,df_Horizonte,df_NovoApp)
     resultadoSAPLINEA= LineaCorrida.getSAPResultado()
     df_resultado = pd.concat([resultadoSAPNOVO, resultadoSAPLINEA], ignore_index=True)
@@ -63,11 +64,11 @@ def leerDatos(carpeta:str, CI:str, CF:str, GLOBAL:str ):
     return leerTablas
     
 
-if __name__ == "__main__":
-    carpeta = 'C:\\Users\\williamtorres\\Desktop\\Nueva carpeta (3)'
+def nam():
+    carpeta = 'C:\\Users\\williamtorres\\Desktop\\Nueva carpeta (4)'
     campañaInicio="202601"
     campañaFin="202818"
-    RutaArchivoGlobal="C:\\Users\\williamtorres\\Downloads\\8 de mayo 2025.xlsx"
+    RutaArchivoGlobal="C:\\Users\\williamtorres\\Downloads\\12 de mayo 2025.xlsx"
     RutaArchivoCDL= "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Carda 18.03.2025\\12_17.03.2025 Reporte CDL_2022_2023_2024_2025_2026.xlsx"
     RutaArchivoCrecimientos= "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Carda 18.03.2025\\Crecimiento.xlsx"
     RutaArchivoVentaHistorica= "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Carda 18.03.2025\\Total_CORP.xlsx"
@@ -89,7 +90,6 @@ if __name__ == "__main__":
     # Verifica si la carpeta ya existe, si no, la crea
     if not os.path.exists(carpeta+"\\Carga SAP"):
         os.mkdir(carpeta+"\\Carga SAP")
-        print("Hola FIN")
-        print("HOLA")
     df_resultado.to_excel(carpeta+"\\Carga SAP\\"+'CargaSAP.xlsx', index=False)
     
+nam()

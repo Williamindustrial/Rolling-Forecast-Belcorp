@@ -1,7 +1,12 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from tkinter import filedialog, messagebox
-
+from datetime import datetime
+import os
+import pandas as pd
+import time
+import os
+import shutil
 
 class RutaSelector:
     def __init__(self, root):
@@ -12,16 +17,6 @@ class RutaSelector:
 
         self.rutas = {}
         self.valores = {}
-
-        # Diccionario de nombres amigables
-        self.nombres_amigables = {
-            "RutaArchivoGlobal": "Archivo Global",
-            "RutaArchivoCDL": "Archivo CDL",
-            "RutaArchivoCrecimientos": "Archivo Crecimientos",
-            "RutaArchivoVentaHistorica": "Venta Histórica",
-            "RutaMacrosNovoApp": "Macros NovoApp",
-            "RutaMacrosRolling": "Macros Rolling Forecast"
-        }
 
         # ---------- Título principal ----------
         titulo = ttk.Label(
@@ -46,9 +41,14 @@ class RutaSelector:
         )
         frame_archivos.pack(fill="x", pady=10)
 
-        campos_archivos = list(self.nombres_amigables.items())
-        for clave, etiqueta in campos_archivos:
-            self.crear_campo_archivo(frame_archivos, clave, etiqueta)
+        # Crear cada campo manualmente, sin bucles
+        self.crear_campo_archivo(frame_archivos, "carpeta: ", "Carpeta Resultado")
+        self.crear_campo_archivo(frame_archivos, "RutaArchivoGlobal", "Archivo Global")
+        self.crear_campo_archivo(frame_archivos, "RutaArchivoCDL", "Archivo CDL")
+        self.crear_campo_archivo(frame_archivos, "RutaArchivoCrecimientos", "Archivo Crecimientos")
+        self.crear_campo_archivo(frame_archivos, "RutaArchivoVentaHistorica", "Venta Histórica")
+        self.crear_campo_archivo(frame_archivos, "RutaMacrosNovoApp", "Macros NovoApp")
+        self.crear_campo_archivo(frame_archivos, "RutaMacrosRolling", "Macros Rolling Forecast")
 
         # ---------- Subframe variables ----------
         frame_variables = ttk.Labelframe(
@@ -59,15 +59,11 @@ class RutaSelector:
         )
         frame_variables.pack(fill="x", pady=10)
 
-        campos_texto = [
-            ("InicioRollingCORP", "Inicio Rolling corporativo"),
-            ("InicioRollingPR", "Inicio Rolling Puerto Rico"),
-            ("AñoFinRolling", "Año Fin creación de estimados"),
-            ("TipoEstimado", "Tipo Estimado")
-        ]
-
-        for clave, etiqueta in campos_texto:
-            self.crear_campo_texto(frame_variables, clave, etiqueta)
+        # Crear cada campo de texto manualmente
+        self.crear_campo_texto(frame_variables, "InicioRollingCORP", "Campaña Inicio Rolling corporativo")
+        self.crear_campo_texto(frame_variables, "InicioRollingPR", "Campaña Inicio Rolling Puerto Rico")
+        self.crear_campo_texto(frame_variables, "AñoFinRolling", "Año Fin creación de estimados")
+        self.crear_campo_texto(frame_variables, "TipoEstimado", "Tipo Estimado")
 
         # ---------- Botón principal ----------
         btn_guardar = ttk.Button(
@@ -122,38 +118,210 @@ class RutaSelector:
             self.valores[nombre] = entrada
 
     def seleccionar_archivo(self, nombre):
-        ruta = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls *.xlsm")])
-        if ruta:
-            self.rutas[nombre]["ruta"] = ruta
-            self.rutas[nombre]["label"].config(text=ruta)
+        if nombre != "carpeta: ":
+            ruta = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls *.xlsm")])
+            if ruta:
+                self.rutas[nombre]["ruta"] = ruta
+                self.rutas[nombre]["label"].config(text=ruta)
+        else:
+            ruta = filedialog.askdirectory(title="Selecciona una carpeta", parent=self.root)
+            if ruta:
+                self.rutas[nombre]["ruta"] = ruta
+                self.rutas[nombre]["label"].config(text=ruta)
 
     def mostrar_valores(self):
+        # Validar rutas de archivo
         for clave, valor in self.rutas.items():
-            nombre_amigable = self.nombres_amigables.get(clave, clave)
+            ruta = valor["ruta"]
 
-            if not valor["ruta"]:
-                messagebox.showerror("Error", f"Por favor, seleccione el {nombre_amigable}.")
+            if not ruta:
+                messagebox.showerror("Error", f"Por favor, seleccione el archivo {clave}.")
                 return
 
-            if clave in ["RutaMacrosNovoApp", "RutaMacrosRolling"]:
-                if not valor["ruta"].endswith(".xlsm"):
-                    messagebox.showerror("Error", f"El archivo {nombre_amigable} debe ser un archivo de macros (.xlsm).")
-                    return
-            else:
-                if not (valor["ruta"].endswith(".xlsx") or valor["ruta"].endswith(".xls")):
-                    messagebox.showerror("Error", f"El archivo {nombre_amigable} debe ser un archivo Excel (.xlsx o .xls).")
-                    return
+            setattr(self, clave, ruta)  # Asigna ruta a self.RutaArchivo...
 
-        print("---- Rutas de archivos ----")
-        for clave, valor in self.rutas.items():
-            print(f"{clave} = {valor['ruta']}")
-
-        print("\n---- Valores de entrada ----")
+        # Validar entradas de texto
         for clave, entrada in self.valores.items():
-            print(f"{clave} = {entrada.get()}")
+            valor = entrada.get()
+            if not valor:
+                messagebox.showerror("Error", f"Por favor, ingrese el valor de {clave}.")
+                return
 
+            if clave in ["InicioRollingCORP", "InicioRollingPR", "AñoFinRolling"]:
+                try:
+                    valor = int(valor)
+                except ValueError:
+                    messagebox.showerror("Error", f"El valor de {clave} debe ser un número.")
+                    return
 
-# ---------- Ejecutar interfaz ----------
+            setattr(self, clave, valor)  # Asigna valor a self.InicioRolling...
+
+        # Aquí continuarías con tu lógica para realizar los cálculos y guardar el archivo
+        self.realizar_calculos()
+        messagebox.showinfo("Éxito", "Cálculo finalizado.")
+        
+    def realizar_calculos(self):
+        try:
+            # Ejemplo de cómo obtener las rutas de los archivos
+            carpeta_resultado = self.rutas["carpeta: "]["ruta"]
+            archivo_global = self.rutas["RutaArchivoGlobal"]["ruta"]
+            archivo_cdl = self.rutas["RutaArchivoCDL"]["ruta"]
+            tipo_estimado = self.valores["TipoEstimado"].get()
+
+            # Ejemplo de obtener los valores de las entradas de texto
+            inicio_rolling_corp = self.valores["InicioRollingCORP"].get()
+            inicio_rolling_pr = self.valores["InicioRollingPR"].get()
+            año_fin_rolling = self.valores["AñoFinRolling"].get()
+            
+            
+        except ValueError:
+            messagebox.showerror("Error", "Las entradas no son validas.")
+    
+    def datos(self,PR:bool, Carpeta:str, NombreCDL:str, InicioRollingCORP:int, InicioRollingPR:int,AñoFinRolling:int, TipoEstimado:str, claseDatos, DireccionMacrosNovoApp:str, DireccionMacrosRolling:str ):
+        from novoApp import novoApp
+        from Tendencia import Tendencia
+        from Plinea import Plinea
+        
+        #Novoaap
+        LeerNovo=novoApp(Carpeta=Carpeta,PR=PR, NombreCDL=NombreCDL,
+                        InicioRollingCORP=InicioRollingCORP, InicioRollingPR=InicioRollingPR, 
+                        AñoFinRolling=AñoFinRolling, claseDatos=claseDatos, DireccionMacrosNovoApp=DireccionMacrosNovoApp)
+        LeerNovo.LimpiarData()
+        LeerNovo.ejecutarMacros()
+        resultadoSAPNOVO= LeerNovo.getSAPResultado()
+        #Tendencia
+        CalculoTendencia= Tendencia(carpeta=Carpeta,CampañaInicioPR=InicioRollingPR,
+                                    CampañaInicioCORP=InicioRollingCORP,PR=PR,
+                                    TipoEstimado=TipoEstimado,añoFinRolling=AñoFinRolling,
+                                    claseDatos=claseDatos,DireccionMacrosRolling=DireccionMacrosRolling)
+        CalculoTendencia.mostrarGraficaTendencia()
+        
+        print("Inicio linea")
+        #Línea
+        archivoCrecimientos=LeerNovo.df_Crecimientos
+        CDL=claseDatos.getCDL()
+        CDL.rename(columns={"CDP": "Centro"}, inplace=True)
+        df_NovoApp=LeerNovo.df_NovoApp
+        df_Horizonte= claseDatos.getHorizonte()
+        LineaCorrida= Plinea(Carpeta=Carpeta,inicioRollingCORP=InicioRollingCORP, 
+                            inicioRollingPR=InicioRollingPR, añoFinRolling=AñoFinRolling, 
+                            PR=PR, NombreCDL= NombreCDL, DireccionMacrosRolling=DireccionMacrosRolling)
+        LineaCorrida.diferencia(df_diferencia=CalculoTendencia.calculoUnidadesLinea())
+        LineaCorrida.pandasAnteriores(archivoCrecimientos,CDL,df_Horizonte,df_NovoApp)
+        resultadoSAPLINEA= LineaCorrida.getSAPResultado()
+        df_resultado = pd.concat([resultadoSAPNOVO, resultadoSAPLINEA], ignore_index=True)
+        return df_resultado
+
+    def leerDatos(self,carpeta:str, CI:str, CF:str, GLOBAL:str ):
+        from DescargaTablas import lecturaInputs
+        # Eliminar archivos de la carpeta y cerrar excel abiertos
+        os.system("taskkill /f /im excel.exe")
+        time.sleep(5)  # Espera 5 segundos antes de iniciar
+        for archivo in os.listdir(carpeta):
+            ruta_completa = os.path.join(carpeta, archivo)
+            if os.path.isfile(ruta_completa):
+                os.remove(ruta_completa)
+            if os.path.isdir(ruta_completa):
+                shutil.rmtree(ruta_completa)  # Elimina la subcarpeta
+        # Descargar archivos SAP
+        leerTablas=lecturaInputs(carpeta)
+        leerTablas.conectarSAP()
+        leerTablas.descargaNOVOAPP(campañaInicio=CI, campañaFin=CF)
+        leerTablas.archivoGlobal(GLOBAL)
+        return leerTablas
+    
+    def realizar_calculos(self):
+        try:
+            # Obtener las rutas desde los campos de archivo
+            carpeta_resultado = self.rutas["carpeta: "]["ruta"].replace('/', '\\')
+            archivo_global = self.rutas["RutaArchivoGlobal"]["ruta"].replace('/', '\\')
+            archivo_cdl = self.rutas["RutaArchivoCDL"]["ruta"].replace('/', '\\')
+            archivo_crecimientos = self.rutas["RutaArchivoCrecimientos"]["ruta"].replace('/', '\\')
+            archivo_venta_historica = self.rutas["RutaArchivoVentaHistorica"]["ruta"].replace('/', '\\')
+            macros_novoapp = self.rutas["RutaMacrosNovoApp"]["ruta"].replace('/', '\\')
+            macros_rolling = self.rutas["RutaMacrosRolling"]["ruta"].replace('/', '\\')
+
+            # Obtener las variables de entrada
+            tipo_estimado = self.valores["TipoEstimado"].get()
+            inicio_rolling_corp = self.valores["InicioRollingCORP"].get()
+            inicio_rolling_pr = self.valores["InicioRollingPR"].get()
+            año_fin_rolling = self.valores["AñoFinRolling"].get()
+
+            # Validar y convertir a números
+            try:
+                inicio_rolling_corpInt = int(inicio_rolling_corp)
+                inicio_rolling_pr = int(inicio_rolling_pr)
+                año_fin_rolling = int(año_fin_rolling)
+            except ValueError:
+                messagebox.showerror("Error", "Las fechas deben ser números válidos.")
+                return
+
+            año_siguiente = datetime.now().year + 1
+            inicio_rolling_corp = f"{año_siguiente}01"  # Resultado: '202601'
+            campaña_fin = str(año_fin_rolling) + "18"
+
+            # Leer datos
+            lecturaDatos = self.leerDatos(
+                carpeta=carpeta_resultado,
+                CI=inicio_rolling_corp,
+                CF=campaña_fin,
+                GLOBAL=archivo_global
+            )
+
+            lecturaDatos.leerOtrosInputs(
+                RutaCDL=archivo_cdl,
+                RutaArchivoCrecimiento=archivo_crecimientos,
+                RutaHistorico=archivo_venta_historica
+            )
+
+            # Cerrar Excel
+            os.system("taskkill /f /im excel.exe")
+
+            # Cálculo CORP
+            resultadoCORP = self.datos(
+                PR=False,
+                InicioRollingPR=inicio_rolling_pr,
+                AñoFinRolling=año_fin_rolling,
+                Carpeta=carpeta_resultado + "\\",
+                NombreCDL=archivo_cdl,
+                InicioRollingCORP=inicio_rolling_corpInt,
+                TipoEstimado=tipo_estimado,
+                claseDatos=lecturaDatos,
+                DireccionMacrosNovoApp=macros_novoapp,
+                DireccionMacrosRolling=macros_rolling
+            )
+            print("Corrida con éxito CORP")
+
+            # Cálculo PR03
+            resultadoPR03 = self.datos(
+                PR=True,
+                InicioRollingPR=inicio_rolling_pr,
+                AñoFinRolling=año_fin_rolling,
+                Carpeta=carpeta_resultado + "\\",
+                NombreCDL=archivo_cdl,
+                InicioRollingCORP=inicio_rolling_corpInt,
+                TipoEstimado=tipo_estimado,
+                claseDatos=lecturaDatos,
+                DireccionMacrosNovoApp=macros_novoapp,
+                DireccionMacrosRolling=macros_rolling
+            )
+            print("Corrida con éxito PR03")
+
+            # Combinar resultados
+            df_resultado = pd.concat([resultadoCORP, resultadoPR03], ignore_index=True)
+
+            # Guardar archivo
+            carpeta_salida = os.path.join(carpeta_resultado, "Carga SAP")
+            os.makedirs(carpeta_salida, exist_ok=True)
+            ruta_final = os.path.join(carpeta_salida, "CargaSAP.xlsx")
+            df_resultado.to_excel(ruta_final, index=False)
+
+            messagebox.showinfo("Éxito", f"Cálculo estimados finalizado.")
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Ocurrió un error durante el cálculo: {str(e)}")
+            
+# Ejecutar la interfaz
 if __name__ == "__main__":
     root = ttk.Window(themename="minty")
     app = RutaSelector(root)

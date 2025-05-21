@@ -172,7 +172,6 @@ class Tendencia:
         # Mostrar la gráfica
         plt.grid(True)
         plt.savefig(self.CarpetaResultado+"VentaCorportativa.pdf", format='pdf')
-        self.calculoUnidadesLinea()
         print("Fin tendencia")
         
     def calculoUnidadesLinea(self):
@@ -186,16 +185,17 @@ class Tendencia:
         CampañaInicioEstimadosA= int(str(self.CampañaInicioEstimados)[-2:])-1
         for i in range(CampañaInicioEstimadosA):
             df_diferencia[x+1][i]=0
+        return df_diferencia
             
-        # Copiar el DataFrame al portapapeles
+        """# Copiar el DataFrame al portapapeles
         df_diferencia.to_clipboard(index=False, excel=True)
-        
+        df_diferencia.to_excel(self.CarpetaResultado+"unidadesRolling.xlsx", index=False)
         # Ruta del archivo Excel
         archivo = self.DireccionMacrosRolling
         print(archivo)
         # Abrir Excel
         excel = win32.Dispatch("Excel.Application")
-        excel.Visible = False
+        excel.Visible = True
         excel.DisplayAlerts = False  #  Esto desactiva los mensajes como "¿Desea reemplazar?"
         # Abrir el archivo
         workbook = excel.Workbooks.Open(archivo)
@@ -211,7 +211,7 @@ class Tendencia:
         print("Paso limpieza")
         workbook.Save()
         workbook.Close(SaveChanges=0)
-        excel.Quit()
+        excel.Quit()"""
         
                 
 #CalculoTendencia= Tendencia(carpeta="C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Carda 18.03.2025\\",CampañaInicioPR=202504,CampañaInicioCORP=202504,PR=False,TipoEstimado="SAP",añoFinRolling=2028)

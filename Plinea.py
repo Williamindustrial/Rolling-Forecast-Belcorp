@@ -20,6 +20,7 @@ class Plinea:
     df_NovoApp=None
     df_ZMM206k=None
     df_resultadoSAP=None
+    df_diferencia=None
     
     def __init__(self, Carpeta:str, PR:bool, NombreCDL:str, inicioRollingCORP: int, inicioRollingPR:int, añoFinRolling: int, DireccionMacrosRolling:str ):
         self.ArchivoCDL=Carpeta+NombreCDL
@@ -150,6 +151,9 @@ class Plinea:
         Plinea.df_Horizonte['campaña'] = Plinea.df_Horizonte['Período'].str.replace(r' C', '', regex=True)
         Plinea.df_Horizonte.to_csv(self.direccionResultado+"\\df_Linea.csv", index=False, encoding='utf-8-sig')
         self.ejecutarMacros()
+        
+    def diferencia(self, df_diferencia):
+        Plinea.df_diferencia=df_diferencia
     
     def ejecutarMacros(self):
         # Copiar el DataFrame al portapapeles
@@ -166,6 +170,16 @@ class Plinea:
         # Abrir el archivo
         workbook = excel.Workbooks.Open(archivo,UpdateLinks=0)
         print("despues abrir archivo")
+        #Pegando unidades meta
+        Plinea.df_diferencia.to_clipboard(index=False, excel=True)
+        hoja = workbook.Sheets("UnidadesMeta")
+        hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
+        # Limpiar toda la hoja
+        hoja.Cells.Clear()
+        # Seleccionar la celda A1 y pegar desde el portapapeles
+        hoja.Range("A1").Select()
+        excel.ActiveSheet.Paste()
+        print("Paso limpieza Unidades meta")
         # Seleccionar la hoja donde pegar
         hoja = workbook.Sheets("Estimados")
         hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
