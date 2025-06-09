@@ -153,7 +153,7 @@ class novoApp:
         print(archivo)
         # Abrir Excel
         excel = win32.Dispatch("Excel.Application")
-        excel.Visible = True
+        excel.Visible = False
         excel.DisplayAlerts = False  #  Esto desactiva los mensajes como "¿Desea reemplazar?"
         # Abrir el archivo
         workbook = excel.Workbooks.Open(archivo,UpdateLinks=0)

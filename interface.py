@@ -7,6 +7,8 @@ import pandas as pd
 import time
 import os
 import shutil
+import openpyxl
+
 
 class RutaSelector:
     def __init__(self, root):
@@ -205,7 +207,7 @@ class RutaSelector:
         df_Horizonte= claseDatos.getHorizonte()
         LineaCorrida= Plinea(Carpeta=Carpeta,inicioRollingCORP=InicioRollingCORP, 
                             inicioRollingPR=InicioRollingPR, añoFinRolling=AñoFinRolling, 
-                            PR=PR, NombreCDL= NombreCDL, DireccionMacrosRolling=DireccionMacrosRolling)
+                            PR=PR, NombreCDL= NombreCDL, DireccionMacrosRolling=DireccionMacrosRolling, tipoEstimado= TipoEstimado)
         LineaCorrida.diferencia(df_diferencia=CalculoTendencia.calculoUnidadesLinea())
         LineaCorrida.pandasAnteriores(archivoCrecimientos,CDL,df_Horizonte,df_NovoApp)
         resultadoSAPLINEA= LineaCorrida.getSAPResultado()
@@ -243,6 +245,8 @@ class RutaSelector:
 
             # Obtener las variables de entrada
             tipo_estimado = self.valores["TipoEstimado"].get()
+            if(tipo_estimado=="SAP"):
+                tipo_estimado = "Supply Original"
             inicio_rolling_corp = self.valores["InicioRollingCORP"].get()
             inicio_rolling_pr = self.valores["InicioRollingPR"].get()
             año_fin_rolling = self.valores["AñoFinRolling"].get()
@@ -251,14 +255,14 @@ class RutaSelector:
             try:
                 inicio_rolling_corpInt = int(inicio_rolling_corp)
                 inicio_rolling_pr = int(inicio_rolling_pr)
-                año_fin_rolling = int(año_fin_rolling)
+                año_fin_rolling = int(año_fin_rolling[:4])
             except ValueError:
                 messagebox.showerror("Error", "Las fechas deben ser números válidos.")
                 return
 
             año_siguiente = datetime.now().year + 1
             inicio_rolling_corp = f"{año_siguiente}01"  # Resultado: '202601'
-            campaña_fin = str(año_fin_rolling) + "18"
+            campaña_fin = str(año_fin_rolling) 
 
             # Leer datos
             lecturaDatos = self.leerDatos(

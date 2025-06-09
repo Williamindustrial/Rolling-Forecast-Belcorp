@@ -22,13 +22,13 @@ class Plinea:
     df_resultadoSAP=None
     df_diferencia=None
     
-    def __init__(self, Carpeta:str, PR:bool, NombreCDL:str, inicioRollingCORP: int, inicioRollingPR:int, añoFinRolling: int, DireccionMacrosRolling:str ):
+    def __init__(self, Carpeta:str, PR:bool, NombreCDL:str, inicioRollingCORP: int, inicioRollingPR:int, añoFinRolling: int, DireccionMacrosRolling:str, tipoEstimado:str ):
         self.ArchivoCDL=Carpeta+NombreCDL
         self.PR=PR
         self.Carpeta=Carpeta
         self.DireccionMacrosRolling=DireccionMacrosRolling
         self.añoFinRolling=añoFinRolling
-        
+        self.tipoEstimado=tipoEstimado
         if(PR):
             self.inicioRolling= inicioRollingPR
             self.direccionResultado= Carpeta+'Resultado PR03\\'
@@ -128,7 +128,7 @@ class Plinea:
         
         if(self.PR):
             Plinea.df_Horizonte = Plinea.df_Horizonte[
-                (Plinea.df_Horizonte['Tipo'] == "SAP") &  
+                (Plinea.df_Horizonte['Tipo'] == self.tipoEstimado) &  
                 (Plinea.df_Horizonte['JERARQUIA'] != 'MUESTRA') &
                 (Plinea.df_Horizonte['EDL'] != 'X') &
                 (Plinea.df_Horizonte['SM'] != 'XX') & 
@@ -139,11 +139,13 @@ class Plinea:
             print("Entro PR-------------")
         else:
             Plinea.df_Horizonte = Plinea.df_Horizonte[
-                (Plinea.df_Horizonte['Tipo'] == "SAP") &  
+                (Plinea.df_Horizonte['Tipo'] == self.tipoEstimado) &  
                 (Plinea.df_Horizonte['JERARQUIA'] != 'MUESTRA') &
                 (Plinea.df_Horizonte['EDL'] != 'X') &
                 (Plinea.df_Horizonte['SM'] != 'XX') & 
                 (Plinea.df_Horizonte['SM'] != 'LQ') &
+                (Plinea.df_Horizonte['SM'] != 'DA') &
+                (Plinea.df_Horizonte['SM'] != 'DC') &
                 (Plinea.df_Horizonte['Ce.']!= 'PR03') & 
                 (Plinea.df_Horizonte['novoApp']!= 'X') ]
         Plinea.df_Horizonte=Plinea.df_Horizonte[['Tipo', 'SAP', 'Categoría', 'UU', 'Grupo art.', 'SM', 'CampaniaDescontinuacion', 'Crecimiento X', 'Crecimiento X+1', 'Crecimiento X+2',
@@ -165,7 +167,7 @@ class Plinea:
         print(archivo)
         # Abrir Excel
         excel = win32.Dispatch("Excel.Application")
-        excel.Visible = True
+        excel.Visible = False
         excel.DisplayAlerts = False  #  Esto desactiva los mensajes como "¿Desea reemplazar?"
         # Abrir el archivo
         workbook = excel.Workbooks.Open(archivo,UpdateLinks=0)
