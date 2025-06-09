@@ -133,6 +133,7 @@ class Plinea:
                 (Plinea.df_Horizonte['EDL'] != 'X') &
                 (Plinea.df_Horizonte['SM'] != 'XX') & 
                 (Plinea.df_Horizonte['SM'] != 'LQ') &
+                (Plinea.df_Horizonte['SM'] != 'DC') &
                 (Plinea.df_Horizonte['Ce.']== 'PR03') & 
                 (Plinea.df_Horizonte['novoApp']!= 'X') 
             ]
@@ -144,7 +145,6 @@ class Plinea:
                 (Plinea.df_Horizonte['EDL'] != 'X') &
                 (Plinea.df_Horizonte['SM'] != 'XX') & 
                 (Plinea.df_Horizonte['SM'] != 'LQ') &
-                (Plinea.df_Horizonte['SM'] != 'DA') &
                 (Plinea.df_Horizonte['SM'] != 'DC') &
                 (Plinea.df_Horizonte['Ce.']!= 'PR03') & 
                 (Plinea.df_Horizonte['novoApp']!= 'X') ]

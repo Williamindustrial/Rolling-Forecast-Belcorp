@@ -150,12 +150,11 @@ class Tendencia:
         self.archivoGlobal()
         self.calculandoTendencia()
         MatrizTendencia=Tendencia.MatrizTendencia
-        # Convertir el índice a tipo string
-        MatrizTendencia.index = MatrizTendencia.index.astype(str)
+        
         
         # Establecer el tamaño de la figura antes de crear el gráfico
         plt.figure(figsize=(10, 10))  # Ancho = 30, Alto = 6
-        
+        MatrizTendencia.index = range(1, len(MatrizTendencia) + 1)
         # Graficar los datos
         MatrizTendencia.plot(kind='line', marker='o')
         
@@ -172,7 +171,7 @@ class Tendencia:
         # Mostrar la gráfica
         plt.grid(True)
         plt.savefig(self.CarpetaResultado+"VentaCorportativa.pdf", format='pdf')
-        print("Fin tendencia")
+        MatrizTendencia.to_csv(self.CarpetaResultado+"VentaCorp.csv", index=False)
         
     def calculoUnidadesLinea(self):
         archivo= self.CarpetaResultado+'novoAppForecast.xlsm'
@@ -187,32 +186,3 @@ class Tendencia:
             df_diferencia[x+1][i]=0
         return df_diferencia
             
-        """# Copiar el DataFrame al portapapeles
-        df_diferencia.to_clipboard(index=False, excel=True)
-        df_diferencia.to_excel(self.CarpetaResultado+"unidadesRolling.xlsx", index=False)
-        # Ruta del archivo Excel
-        archivo = self.DireccionMacrosRolling
-        print(archivo)
-        # Abrir Excel
-        excel = win32.Dispatch("Excel.Application")
-        excel.Visible = True
-        excel.DisplayAlerts = False  #  Esto desactiva los mensajes como "¿Desea reemplazar?"
-        # Abrir el archivo
-        workbook = excel.Workbooks.Open(archivo)
-        print("despues abrir archivo")
-        # Seleccionar la hoja donde pegar
-        hoja = workbook.Sheets("UnidadesMeta")
-        hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
-        # Limpiar toda la hoja
-        hoja.Cells.Clear()
-        # Seleccionar la celda A1 y pegar desde el portapapeles
-        hoja.Range("A1").Select()
-        excel.ActiveSheet.Paste()
-        print("Paso limpieza")
-        workbook.Save()
-        workbook.Close(SaveChanges=0)
-        excel.Quit()"""
-        
-                
-#CalculoTendencia= Tendencia(carpeta="C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Carda 18.03.2025\\",CampañaInicioPR=202504,CampañaInicioCORP=202504,PR=False,TipoEstimado="SAP",añoFinRolling=2028)
-#CalculoTendencia.mostrarGraficaTendencia()
