@@ -13,7 +13,7 @@ from win32com.client import constants
 from DescargaTablas import lecturaInputs
 import time
 class novoApp:
-    
+
     # Variables locales
     df_NovoApp= None
     df_ZMM206NovoApp=None
@@ -34,15 +34,16 @@ class novoApp:
         }
     
     
-    def __init__(self, Carpeta: str, PR:bool, NombreCDL:str, InicioRollingCORP: int, InicioRollingPR: int, AñoFinRolling:int, claseDatos:lecturaInputs, DireccionMacrosNovoApp:str):
+    def __init__(self, Carpeta: str, PR:bool, NombreCDL:str, InicioRollingCORP: int, InicioRollingPR: int, AñoFinRolling:int, claseDatos:lecturaInputs, DireccionMacrosNovoApp:str, categoria:int):
         # Inputs
         self.Carpeta= Carpeta
         self.PR= PR
         self.ArchivoCDL=Carpeta+NombreCDL
         self.descargaTablas= claseDatos
         self.DireccionMacrosNovoApp=DireccionMacrosNovoApp
+        self.categoria=categoria
         if(PR):
-            self.direccionResultado= Carpeta+'Resultado PR03\\'
+            self.direccionResultado= Carpeta+'Resultado PR03\\'+str(categoria)+'\\'
             # Últimos dos dígitos
             self.InicioRolling= InicioRollingPR
             ultimos_dos = str(InicioRollingPR)[-2:]  # 13
@@ -55,7 +56,7 @@ class novoApp:
                 self.FinGlobal=InicioRollingPR-1
             self.NumeroCampañas=13
         else:
-            self.direccionResultado= Carpeta+'Resultado CORP\\'
+            self.direccionResultado= Carpeta+'Resultado CORP\\'+str(categoria)+'\\'
             # Últimos dos dígitos
             self.InicioRolling= InicioRollingCORP
             ultimos_dos = str(InicioRollingCORP)[-2:]  # 13
@@ -71,7 +72,7 @@ class novoApp:
             
         # Verifica si la carpeta ya existe, si no, la crea
         if not os.path.exists(self.direccionResultado):
-            os.mkdir(self.direccionResultado)
+            os.makedirs(self.direccionResultado)
         # Creación Carpeta Resultados
         
     # Aqui se lee NOVOAPP, agregar código descargar desde SAP
@@ -137,7 +138,7 @@ class novoApp:
             "Descontinuación", "Descripción", "Grupo art.", "Tipo de producto",
             "Tipo", "Grupo art.","Crecimiento X", "Crecimiento X+1", "Crecimiento X+2", "Crecimiento X+3", "EDL"
         ]
-        
+        novoApp.df_NovoApp = novoApp.df_NovoApp[novoApp.df_NovoApp['Grupo art.'] == self.categoria]
         # Asignar los nuevos nombres al DataFrame
         novoApp.df_NovoApp.columns = nuevos_nombres
         novoApp.df_NovoApp['Descontinuación'] = novoApp.df_NovoApp['Descontinuación'].fillna(0).astype(int)
@@ -176,17 +177,30 @@ class novoApp:
         hoja.Range("C5").Value = self.NumeroCampañas
         print("Antes de ejecutar la macros")
         # Ejecutar la macro
-        excel.Application.Run("Rolling.RollingForecastingNovoAPP")  # Si la macro está en el módulo principal, sino usa 'Module1.porcentajeMolde'
+        if(len(novoApp.df_NovoApp)>0):
+            excel.Application.Run("Rolling.RollingForecastingNovoAPP")  # Si la macro está en el módulo principal, sino usa 'Module1.porcentajeMolde'
+        else:
+            hoja = workbook.Sheets("Total Año")  # O libro.Sheets(1)
+            hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
+            # Limpiar toda la hoja
+            hoja.Cells.Clear()
+            hoja.Range("A1").Value = "NO HAY DATOS PARA PROCESAR"
+            hoja = workbook.Sheets("Final")  # O libro.Sheets(1)
+            hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
+            # Limpiar toda la hoja
+            hoja.Cells.Clear()
+            hoja.Range("A1").Value = "NO HAY DATOS PARA PROCESAR"
+            
         print("Despues de ejecutar la macros")
         direciónGuardar=self.direccionResultado+"novoAppForecast.xlsm"
         
         # Si el archivo existe, lo eliminamos
         if os.path.exists(direciónGuardar):
             os.remove(direciónGuardar)
-        time.sleep(5)  # Pausa de 1 segundo
+        time.sleep(1)  # Pausa de 1 segundo
         print(direciónGuardar)
         workbook.SaveAs(direciónGuardar, FileFormat=constants.xlOpenXMLWorkbookMacroEnabled)
-        time.sleep(5)  # Pausa de 1 segundo
+        time.sleep(1)  # Pausa de 1 segundo
         workbook.Close(SaveChanges=0)
         excel.Quit()
         self.guardarDatosCorrida()

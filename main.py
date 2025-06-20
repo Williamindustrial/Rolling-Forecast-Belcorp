@@ -16,7 +16,7 @@ import shutil
 def datos(PR:bool, Carpeta:str, NombreCDL:str, InicioRollingCORP:int, InicioRollingPR:int,AñoFinRolling:int, TipoEstimado:str, claseDatos:lecturaInputs, DireccionMacrosNovoApp:str, DireccionMacrosRolling:str ):
     
     #Novoaap
-    LeerNovo=novoApp(Carpeta=Carpeta,PR=PR, NombreCDL=NombreCDL,
+    LeerNovo=novoApp(Carpeta=Carpeta,PR=PR, NombreCDL=NombreCDL, categoria=103,
                      InicioRollingCORP=InicioRollingCORP, InicioRollingPR=InicioRollingPR, 
                      AñoFinRolling=AñoFinRolling, claseDatos=claseDatos, DireccionMacrosNovoApp=DireccionMacrosNovoApp)
     LeerNovo.LimpiarData()
@@ -26,7 +26,7 @@ def datos(PR:bool, Carpeta:str, NombreCDL:str, InicioRollingCORP:int, InicioRoll
     CalculoTendencia= Tendencia(carpeta=Carpeta,CampañaInicioPR=InicioRollingPR,
                                 CampañaInicioCORP=InicioRollingCORP,PR=PR,
                                 TipoEstimado=TipoEstimado,añoFinRolling=AñoFinRolling,
-                                claseDatos=claseDatos,DireccionMacrosRolling=DireccionMacrosRolling)
+                                claseDatos=claseDatos,DireccionMacrosRolling=DireccionMacrosRolling,categoria=101)
     CalculoTendencia.mostrarGraficaTendencia()
     
     print("Inicio linea")
@@ -36,7 +36,7 @@ def datos(PR:bool, Carpeta:str, NombreCDL:str, InicioRollingCORP:int, InicioRoll
     CDL.rename(columns={"CDP": "Centro"}, inplace=True)
     df_NovoApp=LeerNovo.df_NovoApp
     df_Horizonte= claseDatos.getHorizonte()
-    LineaCorrida= Plinea(Carpeta=Carpeta,inicioRollingCORP=InicioRollingCORP, 
+    LineaCorrida= Plinea(Carpeta=Carpeta,inicioRollingCORP=InicioRollingCORP, tipoEstimado=TipoEstimado,categoria=101,
                          inicioRollingPR=InicioRollingPR, añoFinRolling=AñoFinRolling, 
                          PR=PR, NombreCDL= NombreCDL, DireccionMacrosRolling=DireccionMacrosRolling)
     LineaCorrida.diferencia(CalculoTendencia.calculoUnidadesLinea())
@@ -68,16 +68,16 @@ def nam():
     carpeta = 'C:\\Users\\williamtorres\\Desktop\\Nueva carpeta (4)'
     campañaInicio="202601"
     campañaFin="202818"
-    RutaArchivoGlobal="C:\\Users\\williamtorres\\Downloads\\12 de mayo 2025.xlsx"
-    RutaArchivoCDL= "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Carda 18.03.2025\\12_17.03.2025 Reporte CDL_2022_2023_2024_2025_2026.xlsx"
-    RutaArchivoCrecimientos= "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Carda 18.03.2025\\Crecimiento.xlsx"
-    RutaArchivoVentaHistorica= "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Carda 18.03.2025\\Total_CORP.xlsx"
-    RutaMacrosNovoApp=  "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Carda 18.03.2025\\novoAppForecast.xlsm"
-    RutaMacrosRolling=  "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Carda 18.03.2025\\Rolling-Forecast.xlsm"
-    InicioRollingCORP=202608
+    RutaArchivoGlobal="C:\\Users\\williamtorres\\Downloads\\16 de junio 2025.xlsx"
+    RutaArchivoCDL= "C:\\Users\\williamtorres\\Downloads\\24_13.06.2025 Reporte CDL_2023_2024_2025_2026_2027.xlsx"
+    RutaArchivoCrecimientos= "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Inputs\\Crecimiento.xlsx"
+    RutaArchivoVentaHistorica= "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Inputs\\Total_CORP.xlsx"
+    RutaMacrosNovoApp=  "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Inputs\\novoAppForecast.xlsm"
+    RutaMacrosRolling=  "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Inputs\\Rolling-Forecast.xlsm"
+    InicioRollingCORP=202609
     InicioRollingPR=202607
     AñoFinRolling=2028
-    TipoEstimado="SAP"
+    TipoEstimado="Planit"
     lecturaDatos= leerDatos(carpeta=carpeta, CI= campañaInicio, CF= campañaFin, GLOBAL=RutaArchivoGlobal)
     lecturaDatos.leerOtrosInputs(RutaCDL=RutaArchivoCDL, RutaArchivoCrecimiento=RutaArchivoCrecimientos, RutaHistorico=RutaArchivoVentaHistorica)
     #Inicio algoritmo

@@ -22,20 +22,21 @@ class Plinea:
     df_resultadoSAP=None
     df_diferencia=None
     
-    def __init__(self, Carpeta:str, PR:bool, NombreCDL:str, inicioRollingCORP: int, inicioRollingPR:int, añoFinRolling: int, DireccionMacrosRolling:str, tipoEstimado:str ):
+    def __init__(self, Carpeta:str, PR:bool, NombreCDL:str, inicioRollingCORP: int, inicioRollingPR:int, añoFinRolling: int, DireccionMacrosRolling:str, tipoEstimado:str, categoria:int ):
         self.ArchivoCDL=Carpeta+NombreCDL
         self.PR=PR
         self.Carpeta=Carpeta
         self.DireccionMacrosRolling=DireccionMacrosRolling
         self.añoFinRolling=añoFinRolling
         self.tipoEstimado=tipoEstimado
+        self.categoria=categoria
         if(PR):
             self.inicioRolling= inicioRollingPR
-            self.direccionResultado= Carpeta+'Resultado PR03\\'
+            self.direccionResultado= Carpeta+'Resultado PR03\\'+str(categoria)+'\\'
             self.camapañas=13
         else:
             self.inicioRolling= inicioRollingCORP
-            self.direccionResultado= Carpeta+'Resultado CORP\\'
+            self.direccionResultado= Carpeta+'Resultado CORP\\'+str(categoria)+'\\'
             self.camapañas=18
         
         traduciones  = {
@@ -133,8 +134,8 @@ class Plinea:
                 (Plinea.df_Horizonte['EDL'] != 'X') &
                 (Plinea.df_Horizonte['SM'] != 'XX') & 
                 (Plinea.df_Horizonte['SM'] != 'LQ') &
-                (Plinea.df_Horizonte['SM'] != 'DC') &
                 (Plinea.df_Horizonte['Ce.']== 'PR03') & 
+                (Plinea.df_Horizonte['Grupo art.']== self.categoria) & 
                 (Plinea.df_Horizonte['novoApp']!= 'X') 
             ]
             print("Entro PR-------------")
@@ -145,8 +146,8 @@ class Plinea:
                 (Plinea.df_Horizonte['EDL'] != 'X') &
                 (Plinea.df_Horizonte['SM'] != 'XX') & 
                 (Plinea.df_Horizonte['SM'] != 'LQ') &
-                (Plinea.df_Horizonte['SM'] != 'DC') &
                 (Plinea.df_Horizonte['Ce.']!= 'PR03') & 
+                (Plinea.df_Horizonte['Grupo art.']== self.categoria) & 
                 (Plinea.df_Horizonte['novoApp']!= 'X') ]
         Plinea.df_Horizonte=Plinea.df_Horizonte[['Tipo', 'SAP', 'Categoría', 'UU', 'Grupo art.', 'SM', 'CampaniaDescontinuacion', 'Crecimiento X', 'Crecimiento X+1', 'Crecimiento X+2',
        'Crecimiento X+3', 'Descripción SAP', 'Período', 'Ce.', 'JERARQUIA', 'EDL', 'CDP', 'novoApp']]
@@ -174,6 +175,7 @@ class Plinea:
         print("despues abrir archivo")
         #Pegando unidades meta
         Plinea.df_diferencia.to_clipboard(index=False, excel=True)
+        Plinea.df_Horizonte.to_csv(self.direccionResultado+"\\PLFiltro.csv", index=False, encoding='utf-8-sig')
         hoja = workbook.Sheets("UnidadesMeta")
         hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
         # Limpiar toda la hoja
@@ -201,9 +203,16 @@ class Plinea:
         hoja.Range("C5").Value = self.camapañas
         print("Antes de ejecutar la macros")
         # Ejecutar la macro
-        excel.Application.Run("Rolling.RollingForecastingGobal")  # Si la macro está en el módulo principal, sino usa 'Module1.porcentajeMolde'
-        print("Despues de ejecutar la macros")
-        
+        evaluacion= workbook.Sheets("Suma").Range("A1").Value
+        print("Evaluacion de la macro: ", evaluacion)
+        if(int(evaluacion) >0):
+            excel.Application.Run("Rolling.RollingForecastingGobal")  # Si la macro está en el módulo principal, sino usa 'Module1.porcentajeMolde'
+            print("Despues de ejecutar la macros")
+        else:
+            workbook.Sheets("Final").Cells.Clear() 
+            workbook.Sheets("Final").Range("A1").Value = "NO HAY DATOS PARA PROCESAR"
+            workbook.Sheets("Consolidado").Cells.Clear() 
+            workbook.Sheets("Consolidado").Range("A1").Value = "NO HAY DATOS PARA PROCESAR"
         direccion_guardar=self.direccionResultado+"Rolling-Forecast.xlsm"
         
         # Si el archivo existe, lo eliminamos
@@ -215,7 +224,7 @@ class Plinea:
         workbook.Close(SaveChanges=0)
         excel.Quit()
         time.sleep(5)
-        self.guardarDatosCorrida()
+        #self.guardarDatosCorrida()
         print("✅ Hoja consolidado actualizada correctamente y macros Actualizado.")
         
         
@@ -227,6 +236,7 @@ class Plinea:
         df_resultadoSAPNovoAPP.to_excel(self.direccionResultado+"\\ResultadoSAPPL.xlsx", index=False)
         df_CalculosNovoApp.to_csv(self.direccionResultado+"\\CalulosPL.csv", index=False, encoding='utf-8-sig')
         Plinea.df_resultadoSAP= df_resultadoSAPNovoAPP
+        
     
     def getSAPResultado(self):
         return Plinea.df_resultadoSAP

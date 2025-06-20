@@ -159,27 +159,13 @@ class RutaSelector:
             setattr(self, clave, valor)  # Asigna valor a self.InicioRolling...
 
         # Aquí continuarías con tu lógica para realizar los cálculos y guardar el archivo
+        
         self.realizar_calculos()
         messagebox.showinfo("Éxito", "Cálculo finalizado.")
         
-    def realizar_calculos(self):
-        try:
-            # Ejemplo de cómo obtener las rutas de los archivos
-            carpeta_resultado = self.rutas["carpeta: "]["ruta"]
-            archivo_global = self.rutas["RutaArchivoGlobal"]["ruta"]
-            archivo_cdl = self.rutas["RutaArchivoCDL"]["ruta"]
-            tipo_estimado = self.valores["TipoEstimado"].get()
-
-            # Ejemplo de obtener los valores de las entradas de texto
-            inicio_rolling_corp = self.valores["InicioRollingCORP"].get()
-            inicio_rolling_pr = self.valores["InicioRollingPR"].get()
-            año_fin_rolling = self.valores["AñoFinRolling"].get()
-            
-            
-        except ValueError:
-            messagebox.showerror("Error", "Las entradas no son validas.")
     
-    def datos(self,PR:bool, Carpeta:str, NombreCDL:str, InicioRollingCORP:int, InicioRollingPR:int,AñoFinRolling:int, TipoEstimado:str, claseDatos, DireccionMacrosNovoApp:str, DireccionMacrosRolling:str ):
+    
+    def datos(self,PR:bool, Carpeta:str, NombreCDL:str, InicioRollingCORP:int, InicioRollingPR:int,AñoFinRolling:int, TipoEstimado:str, claseDatos, DireccionMacrosNovoApp:str, DireccionMacrosRolling:str, categoria:int ):
         from novoApp import novoApp
         from Tendencia import Tendencia
         from Plinea import Plinea
@@ -187,7 +173,7 @@ class RutaSelector:
         #Novoaap
         LeerNovo=novoApp(Carpeta=Carpeta,PR=PR, NombreCDL=NombreCDL,
                         InicioRollingCORP=InicioRollingCORP, InicioRollingPR=InicioRollingPR, 
-                        AñoFinRolling=AñoFinRolling, claseDatos=claseDatos, DireccionMacrosNovoApp=DireccionMacrosNovoApp)
+                        AñoFinRolling=AñoFinRolling, claseDatos=claseDatos, DireccionMacrosNovoApp=DireccionMacrosNovoApp, categoria=categoria)
         LeerNovo.LimpiarData()
         LeerNovo.ejecutarMacros()
         resultadoSAPNOVO= LeerNovo.getSAPResultado()
@@ -195,7 +181,8 @@ class RutaSelector:
         CalculoTendencia= Tendencia(carpeta=Carpeta,CampañaInicioPR=InicioRollingPR,
                                     CampañaInicioCORP=InicioRollingCORP,PR=PR,
                                     TipoEstimado=TipoEstimado,añoFinRolling=AñoFinRolling,
-                                    claseDatos=claseDatos,DireccionMacrosRolling=DireccionMacrosRolling)
+                                    claseDatos=claseDatos,DireccionMacrosRolling=DireccionMacrosRolling,
+                                    categoria=categoria)
         CalculoTendencia.mostrarGraficaTendencia()
         
         print("Inicio linea")
@@ -204,10 +191,10 @@ class RutaSelector:
         CDL=claseDatos.getCDL()
         CDL.rename(columns={"CDP": "Centro"}, inplace=True)
         df_NovoApp=LeerNovo.df_NovoApp
-        df_Horizonte= claseDatos.getHorizonte()
+        df_Horizonte= claseDatos.getHorizonte().copy(deep=True)
         LineaCorrida= Plinea(Carpeta=Carpeta,inicioRollingCORP=InicioRollingCORP, 
                             inicioRollingPR=InicioRollingPR, añoFinRolling=AñoFinRolling, 
-                            PR=PR, NombreCDL= NombreCDL, DireccionMacrosRolling=DireccionMacrosRolling, tipoEstimado= TipoEstimado)
+                            PR=PR, NombreCDL= NombreCDL, DireccionMacrosRolling=DireccionMacrosRolling, tipoEstimado= TipoEstimado, categoria=categoria)
         LineaCorrida.diferencia(df_diferencia=CalculoTendencia.calculoUnidadesLinea())
         LineaCorrida.pandasAnteriores(archivoCrecimientos,CDL,df_Horizonte,df_NovoApp)
         resultadoSAPLINEA= LineaCorrida.getSAPResultado()
@@ -277,53 +264,58 @@ class RutaSelector:
                 RutaArchivoCrecimiento=archivo_crecimientos,
                 RutaHistorico=archivo_venta_historica
             )
+            
+            Categorias=[101, 102, 103, 104, 105, 106]
+            for categoria in Categorias:
+                # Cerrar Excel
+                os.system("taskkill /f /im excel.exe")
 
-            # Cerrar Excel
-            os.system("taskkill /f /im excel.exe")
+                # Cálculo CORP
+                resultadoCORP = self.datos(
+                    PR=False,
+                    InicioRollingPR=inicio_rolling_pr,
+                    AñoFinRolling=año_fin_rolling,
+                    Carpeta=carpeta_resultado + "\\",
+                    NombreCDL=archivo_cdl,
+                    InicioRollingCORP=inicio_rolling_corpInt,
+                    TipoEstimado=tipo_estimado,
+                    claseDatos=lecturaDatos,
+                    DireccionMacrosNovoApp=macros_novoapp,
+                    DireccionMacrosRolling=macros_rolling,
+                    categoria=categoria
+                )
+                print("Corrida con éxito CORP")
 
-            # Cálculo CORP
-            resultadoCORP = self.datos(
-                PR=False,
-                InicioRollingPR=inicio_rolling_pr,
-                AñoFinRolling=año_fin_rolling,
-                Carpeta=carpeta_resultado + "\\",
-                NombreCDL=archivo_cdl,
-                InicioRollingCORP=inicio_rolling_corpInt,
-                TipoEstimado=tipo_estimado,
-                claseDatos=lecturaDatos,
-                DireccionMacrosNovoApp=macros_novoapp,
-                DireccionMacrosRolling=macros_rolling
-            )
-            print("Corrida con éxito CORP")
+                # Cálculo PR03
+                resultadoPR03 = self.datos(
+                    PR=True,
+                    InicioRollingPR=inicio_rolling_pr,
+                    AñoFinRolling=año_fin_rolling,
+                    Carpeta=carpeta_resultado + "\\",
+                    NombreCDL=archivo_cdl,
+                    InicioRollingCORP=inicio_rolling_corpInt,
+                    TipoEstimado=tipo_estimado,
+                    claseDatos=lecturaDatos,
+                    DireccionMacrosNovoApp=macros_novoapp,
+                    DireccionMacrosRolling=macros_rolling,
+                    categoria=categoria
+                )
+                print("Corrida con éxito PR03")
 
-            # Cálculo PR03
-            resultadoPR03 = self.datos(
-                PR=True,
-                InicioRollingPR=inicio_rolling_pr,
-                AñoFinRolling=año_fin_rolling,
-                Carpeta=carpeta_resultado + "\\",
-                NombreCDL=archivo_cdl,
-                InicioRollingCORP=inicio_rolling_corpInt,
-                TipoEstimado=tipo_estimado,
-                claseDatos=lecturaDatos,
-                DireccionMacrosNovoApp=macros_novoapp,
-                DireccionMacrosRolling=macros_rolling
-            )
-            print("Corrida con éxito PR03")
+                # Combinar resultados
+                """df_resultado = pd.concat([resultadoCORP, resultadoPR03], ignore_index=True)
 
-            # Combinar resultados
-            df_resultado = pd.concat([resultadoCORP, resultadoPR03], ignore_index=True)
-
-            # Guardar archivo
-            carpeta_salida = os.path.join(carpeta_resultado, "Carga SAP")
-            os.makedirs(carpeta_salida, exist_ok=True)
-            ruta_final = os.path.join(carpeta_salida, "CargaSAP.xlsx")
-            df_resultado.to_excel(ruta_final, index=False)
+                # Guardar archivo
+                carpeta_salida = os.path.join(carpeta_resultado, "Carga SAP")
+                os.makedirs(carpeta_salida, exist_ok=True)
+                ruta_final = os.path.join(carpeta_salida, "CargaSAP.xlsx")
+                df_resultado.to_excel(ruta_final, index=False)"""
 
             messagebox.showinfo("Éxito", f"Cálculo estimados finalizado.")
-            
+                
         except Exception as e:
             messagebox.showerror("Error", f"Ocurrió un error durante el cálculo: {str(e)}")
+            print(f"Error: {str(e)}")
             
 # Ejecutar la interfaz
 if __name__ == "__main__":

@@ -283,3 +283,4 @@ class lecturaInputs:
     def get_VentaHistorica(self):
         return lecturaInputs.df_Historico.copy(deep=True)
     
+    

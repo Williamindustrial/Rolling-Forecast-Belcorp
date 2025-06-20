@@ -18,7 +18,7 @@ class Tendencia:
     MatrizTendencia=None
     x=None
     df_Horizonte=None
-    def __init__(self, carpeta:str, CampañaInicioPR:int, CampañaInicioCORP:int, PR: bool, TipoEstimado:str, añoFinRolling: str, claseDatos:lecturaInputs, DireccionMacrosRolling:str):
+    def __init__(self, carpeta:str, CampañaInicioPR:int, CampañaInicioCORP:int, PR: bool, TipoEstimado:str, añoFinRolling: str, claseDatos:lecturaInputs, DireccionMacrosRolling:str, categoria:int):
         self.carpeta= carpeta
         self.TipoEstimado=TipoEstimado
         self.añoFinRolling= añoFinRolling
@@ -26,11 +26,12 @@ class Tendencia:
         self.Tipo=TipoEstimado
         self.descargaTablas= claseDatos
         self.DireccionMacrosRolling=DireccionMacrosRolling
+        self.categoria=categoria
         if(PR):
-            self.CarpetaResultado= self.carpeta+"Resultado PR03//"
+            self.CarpetaResultado= self.carpeta+"Resultado PR03//"+str(categoria)+"//"
             self.CampañaInicioEstimados= CampañaInicioPR
         else:
-            self.CarpetaResultado= self.carpeta+"Resultado CORP//"
+            self.CarpetaResultado= self.carpeta+"Resultado CORP//"+str(categoria)+"//"
             self.CampañaInicioEstimados= CampañaInicioCORP
     
     def calcularVentaHistorico(self):
@@ -38,8 +39,10 @@ class Tendencia:
         df_temp = self.descargaTablas.get_VentaHistorica()
         
         # Omitir columnas A-D (es decir, columnas con índice 0 a 3)
-        df = df_temp.iloc[:, 4:]
+        df = df_temp.iloc[:, 3:]
         # Extraer el año (primeros 4 caracteres)
+        df['P-Categoría'] = df['P-Categoría'].astype(int)
+        df = df[df["P-Categoría"] == self.categoria]
         if(self.PR):
             df = df[df["C-País Desc."] == "N. Puerto Rico"]
             df = df.groupby("Time Periods")["Venta UU (SKU)"].sum().reset_index()
@@ -59,12 +62,28 @@ class Tendencia:
         Tendencia.df= df
     
     def archivoGlobal(self):
-        df_Horizonte= self.descargaTablas.getHorizonte()
+        data = {
+            'Index Categoría': [106, 104, 102, 105, 103, 101],
+            'Categoría': [
+                'f.Accesorios Cosméticos',
+                'd.Tratamiento Facial',
+                'b.Maquillaje',
+                'e.Tratamiento Corporal',
+                'c.Cuidado Personal',
+                'a.Fragancias'
+            ]
+        }
+
+        # Crear el DataFrame
+        df = pd.DataFrame(data)
+        df_Horizonte= self.descargaTablas.getHorizonte().copy()
+        df_Horizonte= pd.merge(df_Horizonte,df, on='Categoría', how='left')
         df_Horizonte['Año'] = df_Horizonte['Período'].str[:4]
         # Extraer la campaña (últimos 2 caracteres)
         df_Horizonte['NCampaña'] = df_Horizonte['Período'].str[-2:]
         df_Horizonte['Campaña'] = (df_Horizonte['Año'] + df_Horizonte['NCampaña']).astype(int)
         df_Horizonte['Año']=df_Horizonte['Año'].astype(int)
+        df_Horizonte = df_Horizonte[df_Horizonte["Index Categoría"] == self.categoria]
         if(self.PR):
             df_Horizonte = df_Horizonte[df_Horizonte["CDP"] == "N. Puerto Rico"]
         else:
@@ -80,7 +99,6 @@ class Tendencia:
         Tendencia.df_Global= df_Global
         
     def calculandoTendencia(self):
-        #Objetivo= [231592267,	239976841,	248778111,	257222411]
         df_Historico = pd.concat([Tendencia.df_Global, Tendencia.df], ignore_index=True)
         df_Historico['Campaña']=df_Historico['Campaña'].astype(str)
         df_Historico['Ncampaña'] = df_Historico['Campaña'].str[-2:]
@@ -126,7 +144,7 @@ class Tendencia:
         df_CrecimientosPaís= self.descargaTablas.get_df_CrecimientosPaís()
         fila_pr = df_CrecimientosPaís[df_CrecimientosPaís["País"] == "PR"]
         fila_corp = df_CrecimientosPaís[df_CrecimientosPaís["País"] == "Unidades (m)"]
-        fila_Crecimiento = df_CrecimientosPaís[df_CrecimientosPaís["País"] == "Crecimiento Unidades"]
+        fila_Crecimiento = df_CrecimientosPaís[df_CrecimientosPaís["País"] == int(self.categoria)]
         vector_Crecimiento= fila_Crecimiento.values
         vector_Crecimiento= vector_Crecimiento[:,1:]
         vector_pr = fila_pr.values
@@ -137,14 +155,15 @@ class Tendencia:
         for i in range(len(vector_Corp[0])):
             Diferencia= vector_pr[0,i]
             if(self.PR==False):
-                Diferencia= vector_Corp[0,i]- vector_pr[0,i]
+                Diferencia= vector_Corp[0,i]
             ventaCORSINPR.append(Diferencia*1000000)
         SumaSS= SumasSinPorcentaje.tolist()
-        if(SumaSS[0]<ventaCORSINPR[0]):
-            SumaSS[0]=ventaCORSINPR[0]
+        """if(SumaSS[0]<ventaCORSINPR[0]):
+            SumaSS[0]=ventaCORSINPR[0]"""
         for i in range(1,len(SumaSS)):
             SumaSS[i]=SumaSS[i-1]*(1+vector_Crecimiento[0,i])
         return SumaSS
+    
     def mostrarGraficaTendencia(self):
         self.calcularVentaHistorico()
         self.archivoGlobal()
@@ -171,16 +190,19 @@ class Tendencia:
         # Mostrar la gráfica
         plt.grid(True)
         plt.savefig(self.CarpetaResultado+"VentaCorportativa.pdf", format='pdf')
-        MatrizTendencia.to_csv(self.CarpetaResultado+"VentaCorp.csv", index=False)
+        Tendencia.MatrizTendencia.to_csv(self.CarpetaResultado+"VentaCorp.csv", index=False)
         
     def calculoUnidadesLinea(self):
         archivo= self.CarpetaResultado+'novoAppForecast.xlsm'
         df_Novoapp= pd.read_excel(archivo, sheet_name='Total Año')
-        df_Novoapp=df_Novoapp.drop(columns=["Campaña"])
         x=Tendencia.x
         self.MatrizTendenciaAux= self.MatrizTendencia.drop(columns=[x-1,x])
         self.MatrizTendenciaAux
-        df_diferencia = pd.DataFrame(self.MatrizTendenciaAux.values - df_Novoapp.values, columns=self.MatrizTendenciaAux.columns)
+        if(len(df_Novoapp) >0):
+            df_Novoapp=df_Novoapp.drop(columns=["Campaña"])
+            df_diferencia = pd.DataFrame(self.MatrizTendenciaAux.values - df_Novoapp.values, columns=self.MatrizTendenciaAux.columns)
+        else:
+            df_diferencia = pd.DataFrame(self.MatrizTendenciaAux.values, columns=self.MatrizTendenciaAux.columns)
         CampañaInicioEstimadosA= int(str(self.CampañaInicioEstimados)[-2:])-1
         for i in range(CampañaInicioEstimadosA):
             df_diferencia[x+1][i]=0

@@ -15,8 +15,6 @@ class SAPAutomation:
                 app = Application(backend="uia").connect(title="SAP Logon")
                 # Obtener la ventana
                 dlg = app.window(title="SAP Logon")
-                # Verificar que estamos encontrando la ventana correctamente
-                print(f"Ventana encontrada: {dlg.window_text()}")
                 # Restaurar la ventana si está minimizada
                 dlg.restore()
                 # Intentamos encontrar el botón "OK" y presionar Enter (o hacer clic en el botón)
@@ -48,7 +46,6 @@ class SAPAutomation:
                     titulo = win.window_text()
                     if "Data Browser:" in titulo:
                         self.titulo = titulo
-                        print(f"Título de ventana encontrado: {self.titulo}")
                         break  # Detener búsqueda al encontrar la ventana
 
                 if self.titulo:  # Si se ha encontrado un título válido
@@ -63,11 +60,9 @@ class SAPAutomation:
                     button.set_focus()
                     send_keys('{ENTER}')
                     print("Botón 'Permitir' presionado exitosamente.")
-                else:
-                    print("No se encontró la ventana 'Data Browser'.")
 
             except Exception as e:
-                print(f"Error al interactuar con el control: {e}")
+                a=0
             time.sleep(2)  # Pausar un momento antes de continuar el ciclo
             
 
