@@ -205,6 +205,16 @@ class lecturaInputs:
         self.pegarData(codigos)
         self.descargaZMM206K("ZMM206NOVOAPP.XLSX")
     
+    def leerNovoAPP1(self, Carpeta):
+        archivoNovoapp = Carpeta+"\\NOVOAPP.XLSX"
+        lecturaInputs.df_NovoApp= pd.read_excel(archivoNovoapp, sheet_name='Sheet1')
+        columnas = ['MANDT', 'COMWERKS', 'COMCAM', 'COMPROD', 'TIPOOFERTA', 'COMUEST',
+       'VTAPROY', 'FUENTE', 'UDFTIME', 'ERSDA', 'ERNAM', 'UDLTIME', 'LAEDA',
+       'AENAM', 'PROGRAMM']
+        lecturaInputs.df_NovoApp.columns = columnas
+        codigos=lecturaInputs.df_NovoApp['COMPROD'].unique().tolist()
+        self.pegarData(codigos)
+    
     def LeerZmm206NovoAPP(self, Carpeta):
         archivoZMM206NOVO = Carpeta+"ZMM206NOVOAPP.XLSX"
         lecturaInputs.df_ZMM206NovoApp= pd.read_excel(archivoZMM206NOVO, sheet_name='Sheet1')
@@ -229,6 +239,10 @@ class lecturaInputs:
         self.pegarData(codigos)
         self.descargaZMM206D()
         self.descargaZMM206K("ZMM206 LINEA-K.XLSX")
+    
+    def leerarchivoGlobal1(self, archivoDireccion):
+        archivoHorizonte = archivoDireccion
+        lecturaInputs.df_Horizonte= pd.read_excel(archivoHorizonte, sheet_name='Horizonte')
         
     def archivoCDL(self, CDL):
         añoActual = datetime.now().year

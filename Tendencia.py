@@ -77,6 +77,7 @@ class Tendencia:
         # Crear el DataFrame
         df = pd.DataFrame(data)
         df_Horizonte= self.descargaTablas.getHorizonte().copy()
+        print(df_Horizonte.head())
         df_Horizonte= pd.merge(df_Horizonte,df, on='Categoría', how='left')
         df_Horizonte['Año'] = df_Horizonte['Período'].str[:4]
         # Extraer la campaña (últimos 2 caracteres)
@@ -85,34 +86,47 @@ class Tendencia:
         df_Horizonte['Año']=df_Horizonte['Año'].astype(int)
         df_Horizonte = df_Horizonte[df_Horizonte["Index Categoría"] == self.categoria]
         if(self.PR):
+            print("PR")
             df_Horizonte = df_Horizonte[df_Horizonte["CDP"] == "N. Puerto Rico"]
         else:
+            print("NPR")
             df_Horizonte = df_Horizonte[df_Horizonte["CDP"] != "N. Puerto Rico"]
+        
         df_filtrado = df_Horizonte[df_Horizonte['Tipo'] == self.Tipo]
+        print(df_filtrado.head())
+        print('.................')
         Tendencia.df_Horizonte=df_filtrado
         df_Global = df_filtrado.groupby('Campaña')['UU'].sum().reset_index()
         df_Global['Campaña']=df_Global['Campaña'].astype(str)
         df_Global['Año'] = df_Global['Campaña'].str[:4]
         df_Global['Año']=df_Global['Año'].astype(int)
         df_Global['Campaña']=df_Global['Campaña'].astype(int)
-        df_Global=df_Global[df_Global['Campaña'] > self.CampañaInicioEstimados]
+        print(self.CampañaInicioEstimados)
+        df_Global=df_Global[df_Global['Campaña'] < self.CampañaInicioEstimados]
+        print(df_Global)
         Tendencia.df_Global= df_Global
         
     def calculandoTendencia(self):
+        print()
+        maximo = Tendencia.df['Campaña'].max()
+        Tendencia.df_Global=Tendencia.df_Global[Tendencia.df_Global['Campaña'] >maximo]
         df_Historico = pd.concat([Tendencia.df_Global, Tendencia.df], ignore_index=True)
+        print(len(df_Historico))
+        print("++++++++++++++++")
         df_Historico['Campaña']=df_Historico['Campaña'].astype(str)
         df_Historico['Ncampaña'] = df_Historico['Campaña'].str[-2:]
         tabla = df_Historico.pivot_table(index='Ncampaña', columns='Año', values='UU', aggfunc='sum', fill_value=0)
         # Convertir la tabla dinámica en una matriz de NumPy
+        print(tabla)
         matriz = tabla.values
         # Agregar dos columnas de ceros (puedes cambiar los valores si lo deseas)
         x = datetime.now().year
-        columnas_adicionales = np.zeros((matriz.shape[0], self.añoFinRolling-x))
+        columnas_adicionales = np.zeros((matriz.shape[0], self.añoFinRolling-x-1))
         
         # Concatenar las columnas adicionales a la matriz existente
         matriz_Completa = np.hstack([matriz, columnas_adicionales])
         CrecimientoCampaña=0
-        for año in range(1,len(matriz_Completa[0])):
+        for año in range(2,len(matriz_Completa[0])):
             for i in range(len(matriz)):
                 if(matriz_Completa[i,año]==0):
                     if(i-1<0):
@@ -123,6 +137,9 @@ class Tendencia:
         vectorcolumns=[]
         for i in range(x-1, self.añoFinRolling+1):
             vectorcolumns.append(i)
+        print(matriz_Completa.shape)
+        print(vectorcolumns)
+        print("-------------------------------------------------")
         MatrizTendencia = pd.DataFrame(matriz_Completa, columns=vectorcolumns)
         Sumas=MatrizTendencia.sum()
         Sumas=Sumas[1:]
@@ -134,8 +151,11 @@ class Tendencia:
             porcentajeCrecimiento.append(Objetivo[i]/Sumas[x+i])
             print(porcentajeCrecimiento[i])
         
-        for i in range(0, 4):
+        for i in range(1, 4):
+            print(f'crecimiento del año {x+i} es {porcentajeCrecimiento[i]}')
+            
             MatrizTendencia[x+i]=MatrizTendencia[x+i]*porcentajeCrecimiento[i]
+        print(MatrizTendencia)
         
         Tendencia.MatrizTendencia= MatrizTendencia
         Tendencia.x=x
@@ -207,4 +227,24 @@ class Tendencia:
         for i in range(CampañaInicioEstimadosA):
             df_diferencia[x+1][i]=0
         return df_diferencia
-            
+
+
+"""descargar= lecturaInputs(direcciónResultado=r'C:\Users\williamtorres\Desktop\04.07.2025')
+descargar.archivoCrecimientoUU(r'C:\Users\williamtorres\OneDrive - CETCO S.A\Rolling forecast\Inputs\Crecimiento.xlsx')
+descargar.Historico(r'C:\Users\williamtorres\OneDrive - CETCO S.A\Rolling forecast\Inputs\Total_CORP.xlsx')
+#descargar.leerNovoAPP('C:\\Users\\williamtorres\\Desktop\\04.07.2025')
+descargar.leerarchivoGlobal1(r'C:\Users\williamtorres\OneDrive - CETCO S.A\Rolling forecast\Inputs\02 de julio 2025 (M6).xlsx')
+
+prueba= Tendencia(
+    carpeta='C:\\Users\\williamtorres\\Desktop\\04.07.2025\\',
+    CampañaInicioPR=202607,
+    CampañaInicioCORP=202610,
+    PR=False,
+    TipoEstimado="Planit",
+    añoFinRolling=2028,
+    claseDatos=descargar,
+    DireccionMacrosRolling="C:/Users/williamtorres/Documents/Proyectos/Forecast/Macros/",
+    categoria=101
+)
+
+prueba.mostrarGraficaTendencia()"""
