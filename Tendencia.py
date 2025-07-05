@@ -121,7 +121,8 @@ class Tendencia:
         matriz = tabla.values
         # Agregar dos columnas de ceros (puedes cambiar los valores si lo deseas)
         x = datetime.now().year
-        columnas_adicionales = np.zeros((matriz.shape[0], self.añoFinRolling-x-1))
+        maximoAño = df_Historico['Año'].max()
+        columnas_adicionales = np.zeros((matriz.shape[0], self.añoFinRolling-maximoAño))
         
         # Concatenar las columnas adicionales a la matriz existente
         matriz_Completa = np.hstack([matriz, columnas_adicionales])
@@ -137,7 +138,7 @@ class Tendencia:
         vectorcolumns=[]
         for i in range(x-1, self.añoFinRolling+1):
             vectorcolumns.append(i)
-        print(matriz_Completa.shape)
+        print(matriz_Completa)
         print(vectorcolumns)
         print("-------------------------------------------------")
         MatrizTendencia = pd.DataFrame(matriz_Completa, columns=vectorcolumns)
@@ -229,22 +230,3 @@ class Tendencia:
         return df_diferencia
 
 
-"""descargar= lecturaInputs(direcciónResultado=r'C:\Users\williamtorres\Desktop\04.07.2025')
-descargar.archivoCrecimientoUU(r'C:\Users\williamtorres\OneDrive - CETCO S.A\Rolling forecast\Inputs\Crecimiento.xlsx')
-descargar.Historico(r'C:\Users\williamtorres\OneDrive - CETCO S.A\Rolling forecast\Inputs\Total_CORP.xlsx')
-#descargar.leerNovoAPP('C:\\Users\\williamtorres\\Desktop\\04.07.2025')
-descargar.leerarchivoGlobal1(r'C:\Users\williamtorres\OneDrive - CETCO S.A\Rolling forecast\Inputs\02 de julio 2025 (M6).xlsx')
-
-prueba= Tendencia(
-    carpeta='C:\\Users\\williamtorres\\Desktop\\04.07.2025\\',
-    CampañaInicioPR=202607,
-    CampañaInicioCORP=202610,
-    PR=False,
-    TipoEstimado="Planit",
-    añoFinRolling=2028,
-    claseDatos=descargar,
-    DireccionMacrosRolling="C:/Users/williamtorres/Documents/Proyectos/Forecast/Macros/",
-    categoria=101
-)
-
-prueba.mostrarGraficaTendencia()"""

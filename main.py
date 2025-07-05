@@ -26,7 +26,7 @@ def datos(PR:bool, Carpeta:str, NombreCDL:str, InicioRollingCORP:int, InicioRoll
     CalculoTendencia= Tendencia(carpeta=Carpeta,CampañaInicioPR=InicioRollingPR,
                                 CampañaInicioCORP=InicioRollingCORP,PR=PR,
                                 TipoEstimado=TipoEstimado,añoFinRolling=AñoFinRolling,
-                                claseDatos=claseDatos,DireccionMacrosRolling=DireccionMacrosRolling,categoria=101)
+                                claseDatos=claseDatos,DireccionMacrosRolling=DireccionMacrosRolling,categoria=103)
     CalculoTendencia.mostrarGraficaTendencia()
     
     print("Inicio linea")
@@ -36,9 +36,9 @@ def datos(PR:bool, Carpeta:str, NombreCDL:str, InicioRollingCORP:int, InicioRoll
     CDL.rename(columns={"CDP": "Centro"}, inplace=True)
     df_NovoApp=LeerNovo.df_NovoApp
     df_Horizonte= claseDatos.getHorizonte()
-    LineaCorrida= Plinea(Carpeta=Carpeta,inicioRollingCORP=InicioRollingCORP, tipoEstimado=TipoEstimado,categoria=101,
+    LineaCorrida= Plinea(Carpeta=Carpeta,inicioRollingCORP=InicioRollingCORP, tipoEstimado=TipoEstimado,categoria=103,
                          inicioRollingPR=InicioRollingPR, añoFinRolling=AñoFinRolling, 
-                         PR=PR, NombreCDL= NombreCDL, DireccionMacrosRolling=DireccionMacrosRolling)
+                         PR=True, NombreCDL= NombreCDL, DireccionMacrosRolling=DireccionMacrosRolling)
     LineaCorrida.diferencia(CalculoTendencia.calculoUnidadesLinea())
     LineaCorrida.pandasAnteriores(archivoCrecimientos,CDL,df_Horizonte,df_NovoApp)
     resultadoSAPLINEA= LineaCorrida.getSAPResultado()
@@ -68,13 +68,13 @@ def nam():
     carpeta = 'C:\\Users\\williamtorres\\Desktop\\Nueva carpeta (4)'
     campañaInicio="202601"
     campañaFin="202818"
-    RutaArchivoGlobal="C:\\Users\\williamtorres\\Downloads\\16 de junio 2025.xlsx"
+    RutaArchivoGlobal="C:\\Users\\williamtorres\\Downloads\\02 de julio 2025 (M6).xlsx"
     RutaArchivoCDL= "C:\\Users\\williamtorres\\Downloads\\24_13.06.2025 Reporte CDL_2023_2024_2025_2026_2027.xlsx"
     RutaArchivoCrecimientos= "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Inputs\\Crecimiento.xlsx"
     RutaArchivoVentaHistorica= "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Inputs\\Total_CORP.xlsx"
     RutaMacrosNovoApp=  "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Inputs\\novoAppForecast.xlsm"
     RutaMacrosRolling=  "C:\\Users\\williamtorres\\OneDrive - CETCO S.A\\Rolling forecast\\Inputs\\Rolling-Forecast.xlsm"
-    InicioRollingCORP=202609
+    InicioRollingCORP=202610
     InicioRollingPR=202607
     AñoFinRolling=2028
     TipoEstimado="Planit"
@@ -82,7 +82,7 @@ def nam():
     lecturaDatos.leerOtrosInputs(RutaCDL=RutaArchivoCDL, RutaArchivoCrecimiento=RutaArchivoCrecimientos, RutaHistorico=RutaArchivoVentaHistorica)
     #Inicio algoritmo
     os.system("taskkill /f /im excel.exe")
-    resultadoCORP=datos(PR=False,InicioRollingPR=InicioRollingPR,AñoFinRolling=AñoFinRolling,Carpeta=carpeta+"\\",NombreCDL=RutaArchivoCDL, InicioRollingCORP= InicioRollingCORP,TipoEstimado=TipoEstimado,claseDatos=lecturaDatos,DireccionMacrosNovoApp=RutaMacrosNovoApp,DireccionMacrosRolling=RutaMacrosRolling)
+    #resultadoCORP=datos(PR=False,InicioRollingPR=InicioRollingPR,AñoFinRolling=AñoFinRolling,Carpeta=carpeta+"\\",NombreCDL=RutaArchivoCDL, InicioRollingCORP= InicioRollingCORP,TipoEstimado=TipoEstimado,claseDatos=lecturaDatos,DireccionMacrosNovoApp=RutaMacrosNovoApp,DireccionMacrosRolling=RutaMacrosRolling)
     print("Corrida con exito CORP")
     resultadoPR03=datos(PR=True,InicioRollingPR=InicioRollingPR,AñoFinRolling=AñoFinRolling,Carpeta=carpeta+"\\",NombreCDL=RutaArchivoCDL, InicioRollingCORP= InicioRollingCORP,TipoEstimado=TipoEstimado,claseDatos=lecturaDatos,DireccionMacrosNovoApp=RutaMacrosNovoApp,DireccionMacrosRolling=RutaMacrosRolling)
     print("Corrida con exito PR03")
