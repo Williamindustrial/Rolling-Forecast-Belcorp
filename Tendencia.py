@@ -221,7 +221,12 @@ class Tendencia:
         self.MatrizTendenciaAux
         if(len(df_Novoapp) >0):
             df_Novoapp=df_Novoapp.drop(columns=["Campaña"])
-            df_diferencia = pd.DataFrame(self.MatrizTendenciaAux.values - df_Novoapp.values, columns=self.MatrizTendenciaAux.columns)
+
+            df_diferencia = pd.DataFrame(
+                np.maximum(self.MatrizTendenciaAux.values - df_Novoapp.values, 0),
+                columns=self.MatrizTendenciaAux.columns
+            )
+
         else:
             df_diferencia = pd.DataFrame(self.MatrizTendenciaAux.values, columns=self.MatrizTendenciaAux.columns)
         CampañaInicioEstimadosA= int(str(self.CampañaInicioEstimados)[-2:])-1

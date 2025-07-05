@@ -181,12 +181,18 @@ class novoApp:
         if(len(novoApp.df_NovoApp)>0):
             excel.Application.Run("Rolling.RollingForecastingNovoAPP")  # Si la macro está en el módulo principal, sino usa 'Module1.porcentajeMolde'
         else:
-            hoja = workbook.Sheets("Total Año")  # O libro.Sheets(1)
+            hoja = workbook.Sheets("Consolidado")  # O libro.Sheets(1)
             hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
             # Limpiar toda la hoja
             hoja.Cells.Clear()
             hoja.Range("A1").Value = "NO HAY DATOS PARA PROCESAR"
             hoja = workbook.Sheets("Final")  # O libro.Sheets(1)
+            hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
+            # Limpiar toda la hoja
+            hoja.Cells.Clear()
+            hoja.Range("A1").Value = "NO HAY DATOS PARA PROCESAR"
+            
+            hoja = workbook.Sheets("Total Año")  # O libro.Sheets(1)
             hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
             # Limpiar toda la hoja
             hoja.Cells.Clear()
@@ -198,13 +204,13 @@ class novoApp:
         # Si el archivo existe, lo eliminamos
         if os.path.exists(direciónGuardar):
             os.remove(direciónGuardar)
-        time.sleep(1)  # Pausa de 1 segundo
+        time.sleep(3)  # Pausa de 1 segundo
         print(direciónGuardar)
         workbook.SaveAs(direciónGuardar, FileFormat=constants.xlOpenXMLWorkbookMacroEnabled)
-        time.sleep(1)  # Pausa de 1 segundo
+        time.sleep(3)  # Pausa de 1 segundo
         workbook.Close(SaveChanges=0)
         excel.Quit()
-        self.guardarDatosCorrida()
+        #self.guardarDatosCorrida()
         print("✅ Hoja consolidado actualizada correctamente y macros Actualizado.")
         
     def guardarDatosCorrida(self):

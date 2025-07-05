@@ -198,8 +198,8 @@ class RutaSelector:
         LineaCorrida.diferencia(df_diferencia=CalculoTendencia.calculoUnidadesLinea())
         LineaCorrida.pandasAnteriores(archivoCrecimientos,CDL,df_Horizonte,df_NovoApp)
         resultadoSAPLINEA= LineaCorrida.getSAPResultado()
-        df_resultado = pd.concat([resultadoSAPNOVO, resultadoSAPLINEA], ignore_index=True)
-        return df_resultado
+        #df_resultado = pd.concat([resultadoSAPNOVO, resultadoSAPLINEA], ignore_index=True)
+        return None
 
     def leerDatos(self,carpeta:str, CI:str, CF:str, GLOBAL:str ):
         from DescargaTablas import lecturaInputs
