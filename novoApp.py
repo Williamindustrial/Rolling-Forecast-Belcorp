@@ -160,6 +160,7 @@ class novoApp:
         workbook = excel.Workbooks.Open(archivo,UpdateLinks=0)
         print("despues abrir archivo")
         # Seleccionar la hoja donde pegar
+        time.sleep(1)  # Pausa de 1 segundo
         hoja = workbook.Sheets("NovoApp")
         hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
         # Limpiar toda la hoja
