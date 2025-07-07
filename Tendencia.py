@@ -146,16 +146,17 @@ class Tendencia:
         Sumas=Sumas[1:]
         print(Sumas)
         Objetivo=self.calcularObjetivo(Sumas)
+        Objetivo[0]=0
         print(Objetivo)
         porcentajeCrecimiento=[]
         for i in range(len(Sumas)):
-            porcentajeCrecimiento.append(Objetivo[i]/Sumas[x+i])
+            porcentajeCrecimiento.append(Objetivo[i])
             print(porcentajeCrecimiento[i])
-        
+        print("mmmmmmmmmmmmmm")
         for i in range(1, 4):
             print(f'crecimiento del año {x+i} es {porcentajeCrecimiento[i]}')
             
-            MatrizTendencia[x+i]=MatrizTendencia[x+i]*porcentajeCrecimiento[i]
+            MatrizTendencia[x+i]=MatrizTendencia[x+i-1]*(1+porcentajeCrecimiento[i])
         print(MatrizTendencia)
         
         Tendencia.MatrizTendencia= MatrizTendencia
@@ -174,7 +175,7 @@ class Tendencia:
         ventaCORSINPR= []
         SumaSS= SumasSinPorcentaje.tolist()
         for i in range(1,len(SumaSS)):
-            SumaSS[i]=SumaSS[i-1]*(1+vector_Crecimiento[0,i])
+            SumaSS[i]=vector_Crecimiento[0,i]
         return SumaSS
     
     def mostrarGraficaTendencia(self):
@@ -227,3 +228,22 @@ class Tendencia:
         return df_diferencia
 
 
+descargar= lecturaInputs(direcciónResultado=r'C:\Users\williamtorres\Desktop\07.07.2025')
+descargar.archivoCrecimientoUU(r'C:\Users\williamtorres\OneDrive - CETCO S.A\Rolling forecast\Inputs\Crecimiento.xlsx')
+descargar.Historico(r'C:\Users\williamtorres\OneDrive - CETCO S.A\Rolling forecast\Inputs\Total_CORP.xlsx')
+#descargar.leerNovoAPP('C:\\Users\\williamtorres\\Desktop\\04.07.2025')
+descargar.leerarchivoGlobal1(r'C:\Users\williamtorres\OneDrive - CETCO S.A\Rolling forecast\Inputs\02 de julio 2025 (M6).xlsx')
+
+prueba= Tendencia(
+    carpeta='C:\\Users\\williamtorres\\Desktop\\07.07.2025\\',
+    CampañaInicioPR=202607,
+    CampañaInicioCORP=202610,
+    PR=False,
+    TipoEstimado="Planit",
+    añoFinRolling=2028,
+    claseDatos=descargar,
+    DireccionMacrosRolling="C:/Users/williamtorres/Documents/Proyectos/Forecast/Macros/",
+    categoria=101
+)
+
+prueba.mostrarGraficaTendencia()
