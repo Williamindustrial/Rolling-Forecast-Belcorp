@@ -135,7 +135,6 @@ class Plinea:
                 (Plinea.df_Horizonte['SM'] != 'XX') & 
                 (Plinea.df_Horizonte['SM'] != 'LQ') &
                 (Plinea.df_Horizonte['Ce.']== 'PR03') & 
-                (Plinea.df_Horizonte['Grupo art.']== self.categoria) & 
                 (Plinea.df_Horizonte['novoApp']!= 'X') 
             ]
             print("Entro PR-------------")

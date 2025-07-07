@@ -138,7 +138,8 @@ class novoApp:
             "Descontinuación", "Descripción", "Grupo art.", "Tipo de producto",
             "Tipo", "Grupo art.","Crecimiento X", "Crecimiento X+1", "Crecimiento X+2", "Crecimiento X+3", "EDL"
         ]
-        novoApp.df_NovoApp = novoApp.df_NovoApp[novoApp.df_NovoApp['Grupo art.'] == self.categoria]
+        if(self.PR  == False):
+            novoApp.df_NovoApp = novoApp.df_NovoApp[novoApp.df_NovoApp['Grupo art.'] == self.categoria]
         # Asignar los nuevos nombres al DataFrame
         novoApp.df_NovoApp.columns = nuevos_nombres
         novoApp.df_NovoApp['Descontinuación'] = novoApp.df_NovoApp['Descontinuación'].fillna(0).astype(int)

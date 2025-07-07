@@ -286,30 +286,21 @@ class RutaSelector:
                 )
                 print("Corrida con éxito CORP")
 
-                # Cálculo PR03
-                resultadoPR03 = self.datos(
-                    PR=True,
-                    InicioRollingPR=inicio_rolling_pr,
-                    AñoFinRolling=año_fin_rolling,
-                    Carpeta=carpeta_resultado + "\\",
-                    NombreCDL=archivo_cdl,
-                    InicioRollingCORP=inicio_rolling_corpInt,
-                    TipoEstimado=tipo_estimado,
-                    claseDatos=lecturaDatos,
-                    DireccionMacrosNovoApp=macros_novoapp,
-                    DireccionMacrosRolling=macros_rolling,
-                    categoria=categoria
-                )
-                print("Corrida con éxito PR03")
-
-                # Combinar resultados
-                """df_resultado = pd.concat([resultadoCORP, resultadoPR03], ignore_index=True)
-
-                # Guardar archivo
-                carpeta_salida = os.path.join(carpeta_resultado, "Carga SAP")
-                os.makedirs(carpeta_salida, exist_ok=True)
-                ruta_final = os.path.join(carpeta_salida, "CargaSAP.xlsx")
-                df_resultado.to_excel(ruta_final, index=False)"""
+        # Cálculo PR03
+            resultadoPR03 = self.datos(
+                PR=True,
+                InicioRollingPR=inicio_rolling_pr,
+                AñoFinRolling=año_fin_rolling,
+                Carpeta=carpeta_resultado + "\\",
+                NombreCDL=archivo_cdl,
+                InicioRollingCORP=inicio_rolling_corpInt,
+                TipoEstimado=tipo_estimado,
+                claseDatos=lecturaDatos,
+                DireccionMacrosNovoApp=macros_novoapp,
+                DireccionMacrosRolling=macros_rolling,
+                categoria="PR"
+            )
+            print("Corrida con éxito PR03")
 
             messagebox.showinfo("Éxito", f"Cálculo estimados finalizado.")
                 

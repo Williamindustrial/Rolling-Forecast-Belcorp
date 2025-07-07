@@ -164,23 +164,15 @@ class Tendencia:
     def calcularObjetivo(self,SumasSinPorcentaje)->list:
         df_CrecimientosPaís= self.descargaTablas.get_df_CrecimientosPaís()
         fila_pr = df_CrecimientosPaís[df_CrecimientosPaís["País"] == "PR"]
-        fila_corp = df_CrecimientosPaís[df_CrecimientosPaís["País"] == "Unidades (m)"]
-        fila_Crecimiento = df_CrecimientosPaís[df_CrecimientosPaís["País"] == int(self.categoria)]
+        if(self.PR):
+            fila_Crecimiento = df_CrecimientosPaís[df_CrecimientosPaís["País"] == "PR"]
+        else:
+            fila_Crecimiento = df_CrecimientosPaís[df_CrecimientosPaís["País"] == int(self.categoria)]
         vector_Crecimiento= fila_Crecimiento.values
         vector_Crecimiento= vector_Crecimiento[:,1:]
         vector_pr = fila_pr.values
-        vector_pr=vector_pr[:,1:]
-        vector_Corp = fila_corp.values
-        vector_Corp= vector_Corp[:,1:]
         ventaCORSINPR= []
-        for i in range(len(vector_Corp[0])):
-            Diferencia= vector_pr[0,i]
-            if(self.PR==False):
-                Diferencia= vector_Corp[0,i]
-            ventaCORSINPR.append(Diferencia*1000000)
         SumaSS= SumasSinPorcentaje.tolist()
-        """if(SumaSS[0]<ventaCORSINPR[0]):
-            SumaSS[0]=ventaCORSINPR[0]"""
         for i in range(1,len(SumaSS)):
             SumaSS[i]=SumaSS[i-1]*(1+vector_Crecimiento[0,i])
         return SumaSS
