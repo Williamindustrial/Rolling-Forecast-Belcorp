@@ -227,23 +227,3 @@ class Tendencia:
             df_diferencia[x+1][i]=0
         return df_diferencia
 
-
-descargar= lecturaInputs(direcciónResultado=r'C:\Users\williamtorres\Desktop\07.07.2025')
-descargar.archivoCrecimientoUU(r'C:\Users\williamtorres\OneDrive - CETCO S.A\Rolling forecast\Inputs\Crecimiento.xlsx')
-descargar.Historico(r'C:\Users\williamtorres\OneDrive - CETCO S.A\Rolling forecast\Inputs\Total_CORP.xlsx')
-#descargar.leerNovoAPP('C:\\Users\\williamtorres\\Desktop\\04.07.2025')
-descargar.leerarchivoGlobal1(r'C:\Users\williamtorres\OneDrive - CETCO S.A\Rolling forecast\Inputs\02 de julio 2025 (M6).xlsx')
-
-prueba= Tendencia(
-    carpeta='C:\\Users\\williamtorres\\Desktop\\07.07.2025\\',
-    CampañaInicioPR=202607,
-    CampañaInicioCORP=202610,
-    PR=False,
-    TipoEstimado="Planit",
-    añoFinRolling=2028,
-    claseDatos=descargar,
-    DireccionMacrosRolling="C:/Users/williamtorres/Documents/Proyectos/Forecast/Macros/",
-    categoria=101
-)
-
-prueba.mostrarGraficaTendencia()
