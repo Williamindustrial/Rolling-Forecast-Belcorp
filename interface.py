@@ -265,7 +265,7 @@ class RutaSelector:
                 RutaHistorico=archivo_venta_historica
             )
             
-            Categorias=[104]
+            Categorias=[101,102, 103, 104, 105, 106]
             for categoria in Categorias:
                 # Cerrar Excel
                 os.system("taskkill /f /im excel.exe")
