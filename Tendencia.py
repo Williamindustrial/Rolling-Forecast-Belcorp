@@ -42,15 +42,17 @@ class Tendencia:
         df = df_temp.iloc[:, 3:]
         # Extraer el año (primeros 4 caracteres)
         df['P-Categoría'] = df['P-Categoría'].astype(int)
-        df = df[df["P-Categoría"] == self.categoria]
+        
         if(self.PR):
             df = df[df["C-País Desc."] == "N. Puerto Rico"]
             df = df.groupby("Time Periods")["Venta UU (SKU)"].sum().reset_index()
             df['Año'] = df['Time Periods'].str[:4]
         else:
+            df = df[df["P-Categoría"] == self.categoria]
             df = df[df["C-País Desc."] != "N. Puerto Rico"]
             df = df.groupby("Time Periods")["Venta UU (SKU)"].sum().reset_index()
             df['Año'] = df['Time Periods'].str[:4]
+            
         
         # Extraer la campaña (últimos 2 caracteres)
         df['NCampaña'] = df['Time Periods'].str[-2:]
@@ -84,12 +86,12 @@ class Tendencia:
         df_Horizonte['NCampaña'] = df_Horizonte['Período'].str[-2:]
         df_Horizonte['Campaña'] = (df_Horizonte['Año'] + df_Horizonte['NCampaña']).astype(int)
         df_Horizonte['Año']=df_Horizonte['Año'].astype(int)
-        df_Horizonte = df_Horizonte[df_Horizonte["Index Categoría"] == self.categoria]
         if(self.PR):
             print("PR")
             df_Horizonte = df_Horizonte[df_Horizonte["CDP"] == "N. Puerto Rico"]
         else:
             print("NPR")
+            df_Horizonte = df_Horizonte[df_Horizonte["Index Categoría"] == self.categoria]
             df_Horizonte = df_Horizonte[df_Horizonte["CDP"] != "N. Puerto Rico"]
         
         df_filtrado = df_Horizonte[df_Horizonte['Tipo'] == self.Tipo]
@@ -127,14 +129,16 @@ class Tendencia:
         # Concatenar las columnas adicionales a la matriz existente
         matriz_Completa = np.hstack([matriz, columnas_adicionales])
         CrecimientoCampaña=0
-        for año in range(2,len(matriz_Completa[0])):
-            for i in range(len(matriz)):
-                if(matriz_Completa[i,año]==0):
-                    if(i-1<0):
-                        matriz_Completa[i,año]=matriz_Completa[i,año-1]/matriz_Completa[len(matriz_Completa)-1,año-2]*matriz_Completa[len(matriz_Completa)-1,año-1]
-                    else:
-                        matriz_Completa[i,año]=matriz_Completa[i,año-1]/matriz_Completa[i-1,año-1]*matriz_Completa[i-1,año]
         
+        Objetivo=self.calcularObjetivo()
+        print(Objetivo)
+        porcentajeCrecimiento=[]
+        porcentajeCrecimiento=Objetivo
+        for año in range(2,len(matriz_Completa[0])):
+            print(año)
+            for i in range(len(matriz)):
+                #if(matriz_Completa[i,año]==0):
+                matriz_Completa[i,año]= matriz_Completa[i,año-1]*(1+porcentajeCrecimiento[año-2])
         vectorcolumns=[]
         for i in range(x-1, self.añoFinRolling+1):
             vectorcolumns.append(i)
@@ -145,24 +149,13 @@ class Tendencia:
         Sumas=MatrizTendencia.sum()
         Sumas=Sumas[1:]
         print(Sumas)
-        Objetivo=self.calcularObjetivo(Sumas)
-        Objetivo[0]=0
-        print(Objetivo)
-        porcentajeCrecimiento=[]
-        for i in range(len(Sumas)):
-            porcentajeCrecimiento.append(Objetivo[i])
-            print(porcentajeCrecimiento[i])
         print("mmmmmmmmmmmmmm")
-        for i in range(1, 4):
-            print(f'crecimiento del año {x+i} es {porcentajeCrecimiento[i]}')
-            
-            MatrizTendencia[x+i]=MatrizTendencia[x+i-1]*(1+porcentajeCrecimiento[i])
         print(MatrizTendencia)
         
         Tendencia.MatrizTendencia= MatrizTendencia
         Tendencia.x=x
         
-    def calcularObjetivo(self,SumasSinPorcentaje)->list:
+    def calcularObjetivo(self)->list:
         df_CrecimientosPaís= self.descargaTablas.get_df_CrecimientosPaís()
         fila_pr = df_CrecimientosPaís[df_CrecimientosPaís["País"] == "PR"]
         if(self.PR):
@@ -173,9 +166,11 @@ class Tendencia:
         vector_Crecimiento= vector_Crecimiento[:,1:]
         vector_pr = fila_pr.values
         ventaCORSINPR= []
-        SumaSS= SumasSinPorcentaje.tolist()
-        for i in range(1,len(SumaSS)):
-            SumaSS[i]=vector_Crecimiento[0,i]
+        print(vector_Crecimiento)
+        SumaSS= []
+        for i in range(1,len(vector_Crecimiento[0])):
+            SumaSS.append(vector_Crecimiento[0,i])
+        print(SumaSS)
         return SumaSS
     
     def mostrarGraficaTendencia(self):

@@ -247,7 +247,7 @@ class RutaSelector:
                 messagebox.showerror("Error", "Las fechas deben ser números válidos.")
                 return
 
-            año_siguiente = datetime.now().year + 1
+            año_siguiente = datetime.now().year+1
             inicio_rolling_corp = f"{año_siguiente}01"  # Resultado: '202601'
             campaña_fin = str(año_fin_rolling) 
 
@@ -265,7 +265,7 @@ class RutaSelector:
                 RutaHistorico=archivo_venta_historica
             )
             
-            Categorias=[101, 102, 103, 104, 105, 106]
+            Categorias=[104]
             for categoria in Categorias:
                 # Cerrar Excel
                 os.system("taskkill /f /im excel.exe")
