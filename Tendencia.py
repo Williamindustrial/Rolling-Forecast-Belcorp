@@ -62,6 +62,26 @@ class Tendencia:
         df = df[['Campaña', 'Venta UU (SKU)', 'Año']]
         df = df.rename(columns={'Venta UU (SKU)': 'UU'})
         Tendencia.df= df
+        
+    def antesGlobal(self, linea):
+        zmm206= pd.read_excel(self.carpeta+'\ZMM206 LINEA-K.XLSX')
+        zmm206["Material"] = (
+            zmm206["Material"]
+            .astype(str)          # asegurar que es texto
+            .str.replace("-", "", regex=False)  # quitar guiones
+            .astype(int)          # convertir a entero
+        )
+        linea = pd.merge(
+            linea,
+            zmm206,
+            left_on="SAP",      # columna en el df izquierda
+            right_on="Material",# columna en el df derecha
+            how="left"          # tipo de merge
+        )
+        linea = linea.drop_duplicates()
+        linea= linea[linea['Tipo de producto']!='MUESTRA']
+        linea = linea.drop(columns=zmm206.columns.intersection(linea.columns))
+    
     
     def archivoGlobal(self):
         data = {
@@ -79,6 +99,7 @@ class Tendencia:
         # Crear el DataFrame
         df = pd.DataFrame(data)
         df_Horizonte= self.descargaTablas.getHorizonte().copy()
+        self.antesGlobal(df_Horizonte)
         print(df_Horizonte.head())
         df_Horizonte= pd.merge(df_Horizonte,df, on='Categoría', how='left')
         df_Horizonte['Año'] = df_Horizonte['Período'].str[:4]
@@ -202,13 +223,13 @@ class Tendencia:
         Tendencia.MatrizTendencia.to_csv(self.CarpetaResultado+"VentaCorp.csv", index=False)
         
     def calculoUnidadesLinea(self):
-        archivo= self.CarpetaResultado+'novoAppForecast.xlsm'
-        df_Novoapp= pd.read_excel(archivo, sheet_name='Total Año')
+        archivo= self.CarpetaResultado+'TotalNovoAPP.csv'
+        df_Novoapp= pd.read_csv(archivo)
         x=Tendencia.x
         self.MatrizTendenciaAux= self.MatrizTendencia.drop(columns=[x-1,x])
         self.MatrizTendenciaAux
         if(len(df_Novoapp) >0):
-            df_Novoapp=df_Novoapp.drop(columns=["Campaña"])
+            df_Novoapp=df_Novoapp.drop(columns=["campaña"])
 
             df_diferencia = pd.DataFrame(
                 np.maximum(self.MatrizTendenciaAux.values - df_Novoapp.values, 0),

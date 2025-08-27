@@ -66,7 +66,7 @@ class lecturaInputs:
         session.findById("wnd[0]/usr/ctxtDATABROWSE-TABLENAME").caretPosition = 14
         session.findById("wnd[0]").sendVKey(0)
         session.findById("wnd[0]/usr/txtI2-LOW").text = campañaInicio
-        session.findById("wnd[0]/usr/txtI2-HIGH").text = campañaFin
+        session.findById("wnd[0]/usr/txtI2-HIGH").text = campañaFin+str("18")
         session.findById("wnd[0]/usr/txtMAX_SEL").text = ""
         session.findById("wnd[0]/usr/txtMAX_SEL").setFocus()
         session.findById("wnd[0]/usr/txtMAX_SEL").caretPosition = 11

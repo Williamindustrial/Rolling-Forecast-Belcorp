@@ -11,6 +11,8 @@ import time
 import win32com.client as win32
 from win32com.client import constants
 from DescargaTablas import lecturaInputs
+from datetime import datetime
+import papermill as pm
 
 class Plinea:
     df_Crecimientos=None
@@ -127,6 +129,9 @@ class Plinea:
         Plinea.df_Horizonte['novoApp'] = Plinea.df_Horizonte['SAP'].isin(CodigosNovoApp).map({True: 'X', False: ''})
         Plinea.df_Horizonte['EDL'] = Plinea.df_Horizonte['Descripción SAP'].astype(str).apply(lambda x: 'X' if ' EDL ' in x else '-')
         
+        año_actual = datetime.now().year+1     
+        año_modificado = f"{año_actual}00" 
+        
         if(self.PR):
             Plinea.df_Horizonte = Plinea.df_Horizonte[
                 (Plinea.df_Horizonte['Tipo'] == self.tipoEstimado) &  
@@ -135,7 +140,8 @@ class Plinea:
                 (Plinea.df_Horizonte['SM'] != 'XX') & 
                 (Plinea.df_Horizonte['SM'] != 'LQ') &
                 (Plinea.df_Horizonte['Ce.']== 'PR03') & 
-                (Plinea.df_Horizonte['novoApp']!= 'X') 
+                (Plinea.df_Horizonte['novoApp']!= 'X') &
+                (Plinea.df_Horizonte['Grupo art.']!= 106)
             ]
             print("Entro PR-------------")
         else:
@@ -150,7 +156,10 @@ class Plinea:
                 (Plinea.df_Horizonte['novoApp']!= 'X') ]
         Plinea.df_Horizonte=Plinea.df_Horizonte[['Tipo', 'SAP', 'Categoría', 'UU', 'Grupo art.', 'SM', 'CampaniaDescontinuacion', 'Crecimiento X', 'Crecimiento X+1', 'Crecimiento X+2',
        'Crecimiento X+3', 'Descripción SAP', 'Período', 'Ce.', 'JERARQUIA', 'EDL', 'CDP', 'novoApp']]
-        Plinea.df_Horizonte['campaña'] = Plinea.df_Horizonte['Período'].str.replace(r' C', '', regex=True)
+        Plinea.df_Horizonte['campaña'] = (
+    Plinea.df_Horizonte['Período'].str.replace(r' C', '', regex=True).astype(int))
+        año_modificado = int(año_modificado)
+        Plinea.df_Horizonte= Plinea.df_Horizonte[Plinea.df_Horizonte['campaña']>=año_modificado]
         Plinea.df_Horizonte.to_csv(self.direccionResultado+"\\df_Linea.csv", index=False, encoding='utf-8-sig')
         self.ejecutarMacros()
         
@@ -158,75 +167,22 @@ class Plinea:
         Plinea.df_diferencia=df_diferencia
     
     def ejecutarMacros(self):
-        # Copiar el DataFrame al portapapeles
-        print("Inicio Macros")
-        time.sleep(10)
-        # Ruta del archivo Excel
-        archivo = self.DireccionMacrosRolling
-        print("-----------------------")
-        print(archivo)
-        # Abrir Excel
-        excel = win32.Dispatch("Excel.Application")
-        excel.Visible = False
-        excel.DisplayAlerts = False  #  Esto desactiva los mensajes como "¿Desea reemplazar?"
-        # Abrir el archivo
-        workbook = excel.Workbooks.Open(archivo,UpdateLinks=0)
-        print("despues abrir archivo")
-        #Pegando unidades meta
-        Plinea.df_diferencia.to_clipboard(index=False, excel=True)
-        Plinea.df_Horizonte.to_csv(self.direccionResultado+"\\PLFiltro.csv", index=False, encoding='utf-8-sig')
-        hoja = workbook.Sheets("UnidadesMeta")
-        hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
-        # Limpiar toda la hoja
-        hoja.Cells.Clear()
-        # Seleccionar la celda A1 y pegar desde el portapapeles
-        hoja.Range("A1").Select()
-        excel.ActiveSheet.Paste()
-        print("Paso limpieza Unidades meta")
-        # Seleccionar la hoja donde pegar
-        hoja = workbook.Sheets("Estimados")
-        hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
-        # Limpiar toda la hoja
-        hoja.Cells.Clear()
-        # Seleccionar la celda A1 y pegar desde el portapapeles
-        hoja.Range("A1").Select()
-        Plinea.df_Horizonte.to_clipboard(index=False, excel=True)
-        excel.ActiveSheet.Paste()
-        print("Paso limpieza")
-        # Selecciona una hoja (por nombre o por índice)
-        hoja = workbook.Sheets("Control")  # O libro.Sheets(1)
-        
-        # Edita una celda (por ejemplo A1)
-        hoja.Range("C3").Value = self.inicioRolling
-        hoja.Range("C4").Value = self.añoFinRolling
-        hoja.Range("C5").Value = self.camapañas
-        print("Antes de ejecutar la macros")
-        # Ejecutar la macro
-        evaluacion= workbook.Sheets("Suma").Range("A1").Value
-        print("Evaluacion de la macro: ", evaluacion)
-        if(int(evaluacion) >0):
-            excel.Application.Run("Rolling.RollingForecastingGobal")  # Si la macro está en el módulo principal, sino usa 'Module1.porcentajeMolde'
-            print("Despues de ejecutar la macros")
-        else:
-            workbook.Sheets("Final").Cells.Clear() 
-            workbook.Sheets("Final").Range("A1").Value = "NO HAY DATOS PARA PROCESAR"
-            workbook.Sheets("Consolidado").Cells.Clear() 
-            workbook.Sheets("Consolidado").Range("A1").Value = "NO HAY DATOS PARA PROCESAR"
-        direccion_guardar=self.direccionResultado+"Rolling-Forecast.xlsm"
-        
-        # Si el archivo existe, lo eliminamos
-        if os.path.exists(direccion_guardar):
-            os.remove(direccion_guardar)
-            
-        print(direccion_guardar)
-        workbook.SaveAs(direccion_guardar,  FileFormat=constants.xlOpenXMLWorkbookMacroEnabled)
-        workbook.Close(SaveChanges=0)
-        excel.Quit()
-        time.sleep(5)
-        #self.guardarDatosCorrida()
-        print("✅ Hoja consolidado actualizada correctamente y macros Actualizado.")
-        
-        
+        CampañaInicioRolling = self.inicioRolling
+        UltimaCampañaRolling = int(str(self.añoFinRolling)+str(self.camapañas))
+        CampañasxPeriodo = self.camapañas
+        Carpeta= self.direccionResultado
+        df_Meta= Plinea.df_diferencia
+        df_Meta.to_csv(self.direccionResultado+"\\df_Meta.csv", index=False, encoding='utf-8-sig')
+        pm.execute_notebook(
+            f'{self.DireccionMacrosRolling}',          # 📓 tu notebook de entrada
+            f'{Carpeta}\Rolling.ipynb',   # 📓 notebook de salida con resultados
+            parameters=dict(
+                CampañasxPeriodo=CampañasxPeriodo,
+                UltimaCampañaRolling=UltimaCampañaRolling,
+                CampañaInicioRolling=CampañaInicioRolling,
+                Carpeta=Carpeta
+            )
+        ) 
     def guardarDatosCorrida(self):
         archivoNovoapp = self.direccionResultado+"Rolling-Forecast.xlsm"
         df_resultadoSAPNovoAPP= pd.read_excel(archivoNovoapp, sheet_name='Consolidado')

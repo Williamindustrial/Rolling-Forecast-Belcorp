@@ -121,7 +121,7 @@ class RutaSelector:
 
     def seleccionar_archivo(self, nombre):
         if nombre != "carpeta: ":
-            ruta = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls *.xlsm")])
+            ruta = filedialog.askopenfilename()
             if ruta:
                 self.rutas[nombre]["ruta"] = ruta
                 self.rutas[nombre]["label"].config(text=ruta)
@@ -265,7 +265,7 @@ class RutaSelector:
                 RutaHistorico=archivo_venta_historica
             )
             
-            Categorias=[101,102, 103, 104, 105, 106]
+            Categorias=[101,102, 103, 104, 105]
             for categoria in Categorias:
                 # Cerrar Excel
                 os.system("taskkill /f /im excel.exe")
@@ -285,7 +285,6 @@ class RutaSelector:
                     categoria=categoria
                 )
                 print("Corrida con éxito CORP")
-
         # Cálculo PR03
             resultadoPR03 = self.datos(
                 PR=True,

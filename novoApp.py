@@ -12,6 +12,8 @@ import win32com.client as win32
 from win32com.client import constants
 from DescargaTablas import lecturaInputs
 import time
+import papermill as pm
+from datetime import datetime
 class novoApp:
 
     # Variables locales
@@ -106,6 +108,8 @@ class novoApp:
         self.LeerZmm206()
         self.archivoCDL()
         self.archivoCrecimiento()
+        año_actual = datetime.now().year+1     
+        año_modificado = f"{año_actual}00" 
         novoApp.df_NovoApp = pd.merge(novoApp.df_NovoApp, novoApp.CDL, left_on=["COMPROD","COMWERKS"], right_on=["CodigoSAP","CDP"], how="left")
         novoApp.df_NovoApp=novoApp.df_NovoApp[["COMWERKS",'COMPROD', 'COMCAM' , "FUENTE", "TIPOOFERTA", 'COMUEST', 'CampaniaDescontinuacion']]
         
@@ -122,13 +126,14 @@ class novoApp:
         novoApp.df_NovoApp['EDL'] = novoApp.df_NovoApp['Número de material'].astype(str).apply(lambda x: 'X' if ' EDL ' in x else '-')
         if(self.PR):
            novoApp.df_NovoApp = novoApp.df_NovoApp[
-            (novoApp.df_NovoApp['FUENTE'] == "Novoapp") &  
+            (novoApp.df_NovoApp['FUENTE'] != "Planit") &  
             (novoApp.df_NovoApp['Tipo de producto'] != 'MUESTRA') &
             (novoApp.df_NovoApp['EDL'] != 'X')&
-            (novoApp.df_NovoApp['COMWERKS'] == 'PR03')]   
+            (novoApp.df_NovoApp['COMWERKS'] == 'PR03')&
+            (novoApp.df_NovoApp['Grupo art.'] != 106)]   
         else:
             novoApp.df_NovoApp = novoApp.df_NovoApp[
-            (novoApp.df_NovoApp['FUENTE'] == "Novoapp") &  
+            (novoApp.df_NovoApp['FUENTE'] != "Planit") &  
             (novoApp.df_NovoApp['Tipo de producto'] != 'MUESTRA') &
             (novoApp.df_NovoApp['EDL'] != 'X')&
             (novoApp.df_NovoApp['COMWERKS'] != 'PR03')]
@@ -143,85 +148,29 @@ class novoApp:
         # Asignar los nuevos nombres al DataFrame
         novoApp.df_NovoApp.columns = nuevos_nombres
         novoApp.df_NovoApp['Descontinuación'] = novoApp.df_NovoApp['Descontinuación'].fillna(0).astype(int)
+        año_modificado = int(año_modificado)
+        novoApp.df_NovoApp= novoApp.df_NovoApp[novoApp.df_NovoApp['Campaña']>=año_modificado]
         novoApp.df_NovoApp.to_csv(self.direccionResultado+"\\df_NovoApp.csv", index=False, encoding='utf-8-sig')
         print("✅ Limpieza de datos finalizda.")
 
     def ejecutarMacros(self):
         # Copiar el DataFrame al portapapeles
-        novoApp.df_NovoApp.to_clipboard(index=False, excel=True)
+        CampañaInicioRolling_ = self.InicioRolling
+        CampañasxPeriodo_ =self.NumeroCampañas
+        UltimaCampañaRolling_= int(str(self.FinRollin)+str(self.NumeroCampañas))
+        Carpeta_ = self.direccionResultado
         
-        # Ruta del archivo Excel
-        archivo = self.DireccionMacrosNovoApp
-        print(archivo)
-        # Abrir Excel
-        excel = win32.Dispatch("Excel.Application")
-        excel.Visible = False
-        excel.DisplayAlerts = False  #  Esto desactiva los mensajes como "¿Desea reemplazar?"
-        # Abrir el archivo
-        workbook = excel.Workbooks.Open(archivo,UpdateLinks=0)
-        print("despues abrir archivo")
-        # Seleccionar la hoja donde pegar
-        time.sleep(1)  # Pausa de 1 segundo
-        hoja = workbook.Sheets("NovoApp")
-        hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
-        # Limpiar toda la hoja
-        hoja.Cells.Clear()
-        # Seleccionar la celda A1 y pegar desde el portapapeles
-        hoja.Range("A1").Select()
-        excel.ActiveSheet.Paste()
-        print("Paso limpieza")
-        # Selecciona una hoja (por nombre o por índice)
-        hoja = workbook.Sheets("Control")  # O libro.Sheets(1)
-        
-        # Edita una celda (por ejemplo A1)
-        hoja.Range("C3").Value = self.FinGlobal
-        hoja.Range("C4").Value = self.FinRollin
-        hoja.Range("C5").Value = self.NumeroCampañas
-        print("Antes de ejecutar la macros")
-        # Ejecutar la macro
-        if(len(novoApp.df_NovoApp)>0):
-            excel.Application.Run("Rolling.RollingForecastingNovoAPP")  # Si la macro está en el módulo principal, sino usa 'Module1.porcentajeMolde'
-        else:
-            hoja = workbook.Sheets("Consolidado")  # O libro.Sheets(1)
-            hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
-            # Limpiar toda la hoja
-            hoja.Cells.Clear()
-            hoja.Range("A1").Value = "NO HAY DATOS PARA PROCESAR"
-            hoja = workbook.Sheets("Final")  # O libro.Sheets(1)
-            hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
-            # Limpiar toda la hoja
-            hoja.Cells.Clear()
-            hoja.Range("A1").Value = "NO HAY DATOS PARA PROCESAR"
-            
-            hoja = workbook.Sheets("Total Año")  # O libro.Sheets(1)
-            hoja.Activate()  # MUY IMPORTANTE antes de usar .Select()
-            # Limpiar toda la hoja
-            hoja.Cells.Clear()
-            hoja.Range("A1").Value = "NO HAY DATOS PARA PROCESAR"
-            
-        print("Despues de ejecutar la macros")
-        direciónGuardar=self.direccionResultado+"novoAppForecast.xlsm"
-        
-        # Si el archivo existe, lo eliminamos
-        if os.path.exists(direciónGuardar):
-            os.remove(direciónGuardar)
-        time.sleep(3)  # Pausa de 1 segundo
-        print(direciónGuardar)
-        workbook.SaveAs(direciónGuardar, FileFormat=constants.xlOpenXMLWorkbookMacroEnabled)
-        time.sleep(3)  # Pausa de 1 segundo
-        workbook.Close(SaveChanges=0)
-        excel.Quit()
-        #self.guardarDatosCorrida()
-        print("✅ Hoja consolidado actualizada correctamente y macros Actualizado.")
-        
-    def guardarDatosCorrida(self):
-        archivoNovoapp = self.direccionResultado+"novoAppForecast.xlsm"
-        df_resultadoSAPNovoAPP= pd.read_excel(archivoNovoapp, sheet_name='Consolidado')
-        df_CalculosNovoApp= pd.read_excel(archivoNovoapp, sheet_name='Final')
-        df_resultadoSAPNovoAPP['TO'] = df_resultadoSAPNovoAPP['TO'].astype(str).str.zfill(3)
-        df_resultadoSAPNovoAPP.to_excel(self.direccionResultado+"\\ResultadoSAPNovoAPP.xlsx", index=False)
-        df_CalculosNovoApp.to_csv(self.direccionResultado+"\\CalulosNovoApp.csv", index=False, encoding='utf-8-sig')
-        novoApp.df_resultadoSAP=df_resultadoSAPNovoAPP
+        # Ejecutar el notebook con parámetros
+        pm.execute_notebook(
+            f'{self.DireccionMacrosNovoApp}',          # 📓 tu notebook de entrada
+            f'{Carpeta_}\\novoApp.ipynb',   # 📓 notebook de salida con resultados
+            parameters=dict(
+                CampañasxPeriodo=CampañasxPeriodo_,
+                UltimaCampañaRolling=UltimaCampañaRolling_,
+                CampañaInicioRolling=CampañaInicioRolling_,
+                Carpeta=Carpeta_,
+            )
+        ) 
     
     def getSAPResultado(self):
         return novoApp.df_resultadoSAP
