@@ -79,12 +79,8 @@ class novoApp:
         
     # Aqui se lee NOVOAPP, agregar código descargar desde SAP
     def LeerNovoApp(self):
-        archivoNovoapp = self.Carpeta+"NOVOAPP.xlsx"
-        df_NovoApp= pd.read_excel(archivoNovoapp, sheet_name='Sheet1')
-        df_NovoApp.columns = ['MANDT', 'COMWERKS', 'COMCAM', 'COMPROD', 'TIPOOFERTA', 'COMUEST',
-       'VTAPROY', 'FUENTE', 'UDFTIME', 'ERSDA', 'ERNAM', 'UDLTIME', 'LAEDA',
-       'AENAM', 'PROGRAMM']
-        novoApp.df_NovoApp= df_NovoApp
+        
+        novoApp.df_NovoApp= self.descargaTablas.getNovoApp()
     # Aqui se lee zmm206, agregar código descargar desde SAP
     def LeerZmm206(self):
         archivoZMM206NOVO = self.Carpeta+"ZMM206NOVOAPP.XLSX"

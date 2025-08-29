@@ -247,7 +247,7 @@ class RutaSelector:
                 messagebox.showerror("Error", "Las fechas deben ser números válidos.")
                 return
 
-            año_siguiente = datetime.now().year+1
+            año_siguiente = datetime.now().year
             inicio_rolling_corp = f"{año_siguiente}01"  # Resultado: '202601'
             campaña_fin = str(año_fin_rolling) 
 

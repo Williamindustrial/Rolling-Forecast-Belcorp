@@ -129,7 +129,7 @@ class Plinea:
         Plinea.df_Horizonte['novoApp'] = Plinea.df_Horizonte['SAP'].isin(CodigosNovoApp).map({True: 'X', False: ''})
         Plinea.df_Horizonte['EDL'] = Plinea.df_Horizonte['Descripción SAP'].astype(str).apply(lambda x: 'X' if ' EDL ' in x else '-')
         
-        año_actual = datetime.now().year+1     
+        año_actual = datetime.now().year     
         año_modificado = f"{año_actual}00" 
         
         if(self.PR):

@@ -55,6 +55,8 @@ class lecturaInputs:
     
     def saltarAlertaLogSAP(self):
         self.hilo = SAPAutomation()
+        
+    
                 
     def descargaNOVOAPP(self, campañaInicio:str, campañaFin:str):
         sap_helper = SAPAutomation()
@@ -284,6 +286,9 @@ class lecturaInputs:
         
     def getHorizonte(self):
         return lecturaInputs.df_Horizonte.copy(deep=True)
+    
+    def getNovoApp(self):
+        return lecturaInputs.df_NovoApp.copy(deep=True)
     
     def getCDL(self):
         return lecturaInputs.CDL.copy(deep=True)
